@@ -1,11 +1,12 @@
 "use client"
 import Image from "next/image"
-import { ArrowRight, Check, ChevronRight } from "lucide-react"
+import { ArrowRight, Box, Check, ChevronRight, Lock, Search, Settings, Sparkles } from "lucide-react"
 import { HoverBorderGradient } from "@/components/ui/hover-border"
-import  AnimatedGradientText  from "@/components/ui/gradient-text"
+import AnimatedGradientText from "@/components/ui/gradient-text"
 import { TextEffect } from "@/components/motion-primitives/text-effect"
 import SlideArrowButton from "@/components/getStarted"
 import { useRouter } from "next/navigation"
+import { GlowingEffect } from "@/components/glowCards"
 
 export default function Home() {
   const router = useRouter()
@@ -63,106 +64,32 @@ export default function Home() {
         </TextEffect>
         <p className="text-gray-400 max-w-2xl mx-auto mb-10">
         Prosparity.AI combines advanced GenAI technologies to not only automate outreach but also intelligently classify, strengthen, and convert leads with unprecedented efficiency.
-
         </p>
         
-
         <SlideArrowButton
         primaryColor="#000"
         text="Get Started"
         onClick={() => router.push('/dashboard')}
         />
 
-
         {/* Dashboard Preview */}
         <div className="mt-16 relative">
-      <div className="rounded-lg p-10 shadow-xl ">
-        <Image
-          src="/sample.png"
-          alt="App Screenshot"
-          className="rounded-md"
-          layout="responsive"
-          width={5200}     
-          height={1800}  
-          objectFit="cover"
-        />
-      </div>
-    </div>
-
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="container mx-auto px-4 py-20">
-        <h2 className="text-4xl font-bold text-center mb-16">Breeze through sales at light speed</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="flex flex-col items-start">
-            <div className="flex items-center justify-center w-10 h-10 rounded-md bg-gray-800 mb-4">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M4 6H20M4 12H20M4 18H20"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold mb-2">AI-Powered Lead Management</h3>
-            <p className="text-gray-400 mb-4">
-              Manage your leads in a real-time automated AI system with intelligent classification and prioritization.
-            </p>
-            <a href="#" className="text-purple-400 flex items-center group">
-              Learn more <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-            </a>
-          </div>
-
-          <div className="flex flex-col items-start">
-            <div className="flex items-center justify-center w-10 h-10 rounded-md bg-gray-800 mb-4">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path d="M9 7H7V17H9V7Z" fill="white" />
-                <path d="M17 7H15V17H17V7Z" fill="white" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Intelligent Outreach</h3>
-            <p className="text-gray-400 mb-4">
-              Browse your leads and group them by industry, potential value, and engagement level for targeted outreach.
-            </p>
-            <a href="#" className="text-purple-400 flex items-center group">
-              Learn more <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-            </a>
-          </div>
-
-          <div className="flex flex-col items-start">
-            <div className="flex items-center justify-center w-10 h-10 rounded-md bg-gray-800 mb-4">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M12 8V12L15 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Conversion Timeline</h3>
-            <p className="text-gray-400 mb-4">
-              Plan your sales strategy by scheduling follow-ups and see the progress in a timeline with AI-suggested
-              next steps.
-            </p>
-            <a href="#" className="text-purple-400 flex items-center group">
-              Learn more <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-            </a>
+          <div className="rounded-lg p-10 shadow-xl ">
+            <Image
+              src="/sample.png"
+              alt="App Screenshot"
+              className="rounded-md"
+              layout="responsive"
+              width={5200}     
+              height={1800}  
+              objectFit="cover"
+            />
           </div>
         </div>
       </section>
+
+      {/* Features Section - Now using the new component */}
+      <FeaturesSection />
 
       {/* Automation Section */}
       <section className="container mx-auto px-4 py-20 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -352,195 +279,85 @@ export default function Home() {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
 
-      {/* Footer */}
-      <footer className="bg-gray-900 py-12">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center border-b border-gray-800 pb-8 mb-8">
-            <div className="flex items-center gap-2">
-              <div className="bg-purple-600 rounded-md p-2">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2L20 7V17L12 22L4 17V7L12 2Z" fill="white" />
-                </svg>
-              </div>
-              <span className="text-xl font-bold">Prosparity.AI</span>
-            </div>
-            <div className="flex gap-4">
-              <a href="#" className="text-gray-400 hover:text-white">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M23 3.01006C22.0424 3.68553 20.9821 4.20217 19.86 4.54006C19.2577 3.84757 18.4573 3.35675 17.567 3.13398C16.6767 2.91122 15.7395 2.96725 14.8821 3.29451C14.0247 3.62177 13.2884 4.20446 12.773 4.96377C12.2575 5.72309 11.9877 6.62239 12 7.54006V8.54006C10.2426 8.58562 8.50127 8.19587 6.93101 7.4055C5.36074 6.61513 4.01032 5.44869 3 4.01006C3 4.01006 -1 13.0101 8 17.0101C5.94053 18.408 3.48716 19.109 1 19.0101C10 24.0101 21 19.0101 21 7.51006C20.9991 7.23151 20.9723 6.95365 20.92 6.68006C21.9406 5.67355 22.6608 4.40277 23 3.01006Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M16 8C17.5913 8 19.1174 8.63214 20.2426 9.75736C21.3679 10.8826 22 12.4087 22 14V21H18V14C18 13.4696 17.7893 12.9609 17.4142 12.5858C17.0391 12.2107 16.5304 12 16 12C15.4696 12 14.9609 12.2107 14.5858 12.5858C14.2107 12.9609 14 13.4696 14 14V21H10V14C10 12.4087 10.6321 10.8826 11.7574 9.75736C12.8826 8.63214 14.4087 8 16 8Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M6 9H2V21H6V9Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M4 6C5.10457 6 6 5.10457 6 4C6 2.89543 5.10457 2 4 2C2.89543 2 2 2.89543 2 4C2 5.10457 2.89543 6 4 6Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M2 12H22"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </a>
-            </div>
-          </div>
+export function FeaturesSection() {
+  return (
+    <section id="features" className="container mx-auto px-4 py-20">
+      <h2 className="text-4xl font-bold text-center mb-16">Breeze through sales at light speed</h2>
+      <GlowingEffectDemo />
+    </section>
+  );
+}
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2">
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    Pricing
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    API
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    Integrations
-                  </a>
-                </li>
-              </ul>
-            </div>
+// Add the GlowingEffectDemo component definition here
+export function GlowingEffectDemo() {
+  return (
+    <ul className="grid grid-cols-1 grid-rows-none gap-4 md:grid-cols-12 md:grid-rows-3 lg:gap-4 xl:max-h-[34rem] xl:grid-rows-2">
+      <GridItem
+        area="md:[grid-area:1/1/2/7] xl:[grid-area:1/1/2/5]"
+        icon={<Box className="h-4 w-4 text-black dark:text-neutral-400" />}
+        title="AI-Powered Lead Management"
+        description="Manage your leads in a real-time AI system with intelligent classification and prioritization."
+      />
+      <GridItem
+        area="md:[grid-area:1/7/2/13] xl:[grid-area:2/1/3/5]"
+        icon={<Settings className="h-4 w-4 text-black dark:text-neutral-400" />}
+        title="Intelligent Outreach"
+        description="Group leads by industry, potential value, and engagement level for laser-focused outreach."
+      />
+      <GridItem
+        area="md:[grid-area:2/1/3/7] xl:[grid-area:1/5/3/8]"
+        icon={<Lock className="h-4 w-4 text-black dark:text-neutral-400" />}
+        title="Data Privacy & Security"
+        description="Enterprise-grade encryption keeps your customer data safe and sound. Always."
+      />
+      <GridItem
+        area="md:[grid-area:2/7/3/13] xl:[grid-area:1/8/2/13]"
+        icon={<Sparkles className="h-4 w-4 text-black dark:text-neutral-400" />}
+        title="Conversion Timeline"
+        description="See progress at a glance and get AI-suggested next steps in your sales journey."
+      />
+      <GridItem
+        area="md:[grid-area:3/1/4/13] xl:[grid-area:2/8/3/13]"
+        icon={<Search className="h-4 w-4 text-black dark:text-neutral-400" />}
+        title="Smart CRM Integration"
+        description="Integrate seamlessly with your tools. Say goodbye to context switching forever."
+      />
+    </ul>
+  );
+}
 
-            <div>
-              <h4 className="font-semibold mb-4">Resources</h4>
-              <ul className="space-y-2">
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    Documentation
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    Guides
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    Support
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    API Status
-                  </a>
-                </li>
-              </ul>
+// Add the GridItem component definition here
+const GridItem = ({ area, icon, title, description }) => {
+  return (
+    <li className={`min-h-[14rem] list-none ${area}`}>
+      <div className="relative h-full rounded-2xl border p-2 md:rounded-3xl md:p-3">
+        <GlowingEffect
+          spread={40}
+          glow={true}
+          disabled={false}
+          proximity={64}
+          inactiveZone={0.01}
+        />
+        <div className="border-0.75 relative flex h-full flex-col justify-between gap-6 overflow-hidden rounded-xl p-6 md:p-6 dark:shadow-[0px_0px_27px_0px_#2D2D2D]">
+          <div className="relative flex flex-1 flex-col justify-between gap-3">
+            <div className="w-fit rounded-lg border border-gray-600 p-2">
+              {icon}
             </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2">
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    About
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    Careers
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    Press
-                  </a>
-                </li>
-              </ul>
+            <div className="space-y-3">
+              <h3 className="-tracking-4 pt-0.5 font-sans text-xl/[1.375rem] font-semibold text-balance text-black md:text-2xl/[1.875rem] dark:text-white">
+                {title}
+              </h3>
+              <h2 className="font-sans text-sm/[1.125rem] text-black md:text-base/[1.375rem] dark:text-neutral-400 [&_b]:md:font-semibold [&_strong]:md:font-semibold">
+                {description}
+              </h2>
             </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2">
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    Privacy
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    Terms
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    Security
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-400 hover:text-white text-sm">
-                    Cookies
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="text-center text-gray-400 text-sm">
-            <p>© 2025 Prosparity.AI. All rights reserved.</p>
           </div>
         </div>
-      </footer>
-    </div>
-  )
-}
+      </div>
+    </li>
+  );
+};
