@@ -1,10 +1,14 @@
+"use client"
 import Image from "next/image"
 import { ArrowRight, Check, ChevronRight } from "lucide-react"
 import { HoverBorderGradient } from "@/components/ui/hover-border"
 import  AnimatedGradientText  from "@/components/ui/gradient-text"
 import { TextEffect } from "@/components/motion-primitives/text-effect"
+import SlideArrowButton from "@/components/getStarted"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
+  const router = useRouter()
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 to-gray-900 text-white">
       {/* Header */}
@@ -61,9 +65,14 @@ export default function Home() {
         Prosparity.AI combines advanced GenAI technologies to not only automate outreach but also intelligently classify, strengthen, and convert leads with unprecedented efficiency.
 
         </p>
-        <button className="bg-gray-800 hover:bg-gray-700 text-white rounded-md px-6 py-3 flex items-center gap-2 mx-auto transition-colors">
-          Continue with Prosparity.AI
-        </button>
+        
+
+        <SlideArrowButton
+        primaryColor="#000"
+        text="Get Started"
+        onClick={() => router.push('/dashboard')}
+        />
+
 
         {/* Dashboard Preview */}
         <div className="mt-16 relative">
