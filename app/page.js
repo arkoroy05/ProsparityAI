@@ -2,6 +2,7 @@ import Image from "next/image"
 import { ArrowRight, Check, ChevronRight } from "lucide-react"
 import { HoverBorderGradient } from "@/components/ui/hover-border"
 import  AnimatedGradientText  from "@/components/ui/gradient-text"
+import { TextEffect } from "@/components/motion-primitives/text-effect"
 
 export default function Home() {
   return (
@@ -50,11 +51,12 @@ export default function Home() {
           </AnimatedGradientText>
         </HoverBorderGradient>
         </div>
-        <h1 className="text-5xl md:text-8xl font-bold mb-6">
+        <TextEffect preset='fade-in-blur' speedReveal={1.1} speedSegment={0.3} as="h1" className="text-5xl md:text-8xl font-bold mb-6">
           Supercharged
-          <br />
-          Sales experience
-        </h1>
+        </TextEffect>
+        <TextEffect per='char' preset='fade' as="h1" className="text-5xl md:text-8xl font-bold mb-6">
+        Sales experience
+        </TextEffect>
         <p className="text-gray-400 max-w-2xl mx-auto mb-10">
         Prosparity.AI combines advanced GenAI technologies to not only automate outreach but also intelligently classify, strengthen, and convert leads with unprecedented efficiency.
 
