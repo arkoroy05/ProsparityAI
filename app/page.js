@@ -213,7 +213,7 @@ export default function Home() {
           <div className="bg-gray-800 rounded-lg p-6 relative">
             <p className="italic mb-6">
               Prosparity.AI is my top recommendation for managing the flood of sales leads. It feels like a sales
-              superpower and I can't recommend it highly enough.
+              superpower and I cant recommend it highly enough.
             </p>
             <div className="flex items-center">
               <div className="w-12 h-12 rounded-full bg-gray-700 mr-4"></div>
@@ -226,7 +226,7 @@ export default function Home() {
 
           <div className="bg-gray-800 rounded-lg p-6 relative">
             <p className="italic mb-6">
-              I want to give a big shout-out to the team for making a product that simplifies my team's life in sales.
+              I want to give a big shout-out to the team for making a product that simplifies my teams life in sales.
               My favorite feature is the AI follow-up suggestions that have increased our conversion rate by 35%.
             </p>
             <div className="flex items-center">
