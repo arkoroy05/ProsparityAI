@@ -91,7 +91,6 @@ export default function Home() {
       {/* Features Section - Now using the new component */}
       <FeaturesSection />
 
-      {/* Automation Section */}
       <section className="container mx-auto px-4 py-20 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <div>
           <Image
