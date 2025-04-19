@@ -84,13 +84,27 @@ const HeroSection = React.forwardRef((
 
   const checkUserCompany = async (userId) => {
     try {
+      if (!userId) {
+        console.error('No user ID provided to checkUserCompany');
+        router.push('/auth/register-company');
+        return;
+      }
+
       const { data: companies, error } = await supabase
         .from('companies')
         .select('id')
         .eq('owner_id', userId)
         .limit(1)
       
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error in checkUserCompany:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
       
       if (companies && companies.length > 0) {
         // User has a company, redirect to dashboard
@@ -100,9 +114,14 @@ const HeroSection = React.forwardRef((
         router.push('/auth/register-company')
       }
     } catch (error) {
-      console.error('Error checking user company:', error)
-      // If there's an error, redirect to dashboard anyway
-      router.push('/dashboard')
+      console.error('Error checking user company:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      // If there's an error, redirect to company registration instead of dashboard
+      // as it's safer to assume the user needs to register a company
+      router.push('/auth/register-company')
     }
   }
 
