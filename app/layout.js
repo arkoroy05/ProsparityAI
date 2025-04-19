@@ -12,6 +12,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const serviceWorkerScript = `
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+        console.log('ServiceWorker registration successful');
+      }, function(err) {
+        console.log('ServiceWorker registration failed: ', err);
+      });
+    });
+  }
+`;
+
 export const metadata = {
   title: "Prosparity.AI - Transform your sales with AI-powered outreach",
   description: "Prosparity.AI helps you manage leads, automate follow-ups, and scale your sales with a powerful AI sales agent that works 24/7.",
@@ -20,6 +32,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: serviceWorkerScript }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

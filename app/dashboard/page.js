@@ -16,7 +16,7 @@ export default function DashboardPage() {
   const [company, setCompany] = useState(null)
   const [dateRange, setDateRange] = useState("Jan 20, 2023 - Feb 09, 2023")
   const [activeTab, setActiveTab] = useState("overview")
-
+  
   useEffect(() => {
     // Get current session
     const getSession = async () => {

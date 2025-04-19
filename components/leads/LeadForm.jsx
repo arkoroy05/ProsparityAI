@@ -1,5 +1,10 @@
 import { useState } from 'react';
 import { addLead } from '@/lib/lead-utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 const LeadForm = ({ companyId, userId, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -10,7 +15,6 @@ const LeadForm = ({ companyId, userId, onSuccess }) => {
     designation: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,13 +24,35 @@ const LeadForm = ({ companyId, userId, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (!companyId || !userId) {
+      toast.error('Missing required company or user information');
+      return;
+    }
+
+    if (!formData.name?.trim()) {
+      toast.error('Name is required');
+      return;
+    }
+
+    if (!formData.email?.trim() && !formData.phone?.trim()) {
+      toast.error('Either email or phone number is required');
+      return;
+    }
+    
     try {
       setLoading(true);
-      setError(null);
+      
+      console.log('Submitting lead with:', {
+        formData,
+        companyId,
+        userId
+      });
       
       const { success, lead, error: leadError } = await addLead(formData, companyId, userId);
       
-      if (leadError) throw new Error(leadError);
+      if (!success || leadError) {
+        throw new Error(leadError || 'Failed to add lead');
+      }
       
       // Reset form
       setFormData({
@@ -37,120 +63,133 @@ const LeadForm = ({ companyId, userId, onSuccess }) => {
         designation: '',
       });
       
+      toast.success('Lead added successfully');
+      
       // Notify parent component of success
       if (onSuccess) onSuccess(lead);
     } catch (error) {
       console.error('Error adding lead:', error);
-      setError(error.message);
+      toast.error(error.message || 'Failed to add lead');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="p-6 bg-gray-900 rounded-lg shadow-lg border border-gray-800">
-      <h3 className="mb-4 text-lg font-medium text-white">Add New Lead</h3>
+    <Card className="bg-[#1a1c23] border-[#2a2d35]">
+      <CardHeader>
+        <CardTitle className="text-white">Add New Lead</CardTitle>
+        <CardDescription>Enter the lead's information below</CardDescription>
+      </CardHeader>
       
-      {error && (
-        <div className="p-4 mb-4 text-sm text-red-400 bg-red-900/30 rounded-md border border-red-800">
-          {error}
-        </div>
-      )}
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-300">
-            Full Name *
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            required
-            value={formData.name}
-            onChange={handleChange}
-            className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-              Email
+            <label htmlFor="name" className="block text-sm font-medium text-muted-foreground mb-1">
+              Full Name *
             </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-300">
-              Phone Number
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              value={formData.phone}
-              onChange={handleChange}
-              className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
-            />
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="company_name" className="block text-sm font-medium text-gray-300">
-              Company
-            </label>
-            <input
-              id="company_name"
-              name="company_name"
+            <Input
+              id="name"
+              name="name"
               type="text"
-              value={formData.company_name}
+              required
+              value={formData.name}
               onChange={handleChange}
-              className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+              className="bg-[#2a2d35] border-[#353841] text-white"
+              placeholder="John Doe"
             />
           </div>
           
-          <div>
-            <label htmlFor="designation" className="block text-sm font-medium text-gray-300">
-              Job Title
-            </label>
-            <input
-              id="designation"
-              name="designation"
-              type="text"
-              value={formData.designation}
-              onChange={handleChange}
-              className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
-            />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-muted-foreground mb-1">
+                Email
+              </label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="bg-[#2a2d35] border-[#353841] text-white"
+                placeholder="john@example.com"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-muted-foreground mb-1">
+                Phone Number
+              </label>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={handleChange}
+                className="bg-[#2a2d35] border-[#353841] text-white"
+                placeholder="+1 (555) 000-0000"
+              />
+            </div>
           </div>
-        </div>
-        
-        <div className="pt-2">
-          <p className="mb-2 text-xs text-gray-500">
-            * Required field
-          </p>
-          <p className="mb-4 text-xs text-gray-500">
-            Note: Either email or phone number must be provided
-          </p>
           
-          <button
-            type="submit"
-            disabled={loading || (!formData.email && !formData.phone)}
-            className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-purple-600/80 border border-purple-500/30 rounded-md shadow-sm hover:bg-purple-600/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500/50 disabled:bg-gray-800 disabled:border-gray-700 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? 'Adding...' : 'Add Lead'}
-          </button>
-        </div>
-      </form>
-    </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="company_name" className="block text-sm font-medium text-muted-foreground mb-1">
+                Company
+              </label>
+              <Input
+                id="company_name"
+                name="company_name"
+                type="text"
+                value={formData.company_name}
+                onChange={handleChange}
+                className="bg-[#2a2d35] border-[#353841] text-white"
+                placeholder="Company Name"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="designation" className="block text-sm font-medium text-muted-foreground mb-1">
+                Job Title
+              </label>
+              <Input
+                id="designation"
+                name="designation"
+                type="text"
+                value={formData.designation}
+                onChange={handleChange}
+                className="bg-[#2a2d35] border-[#353841] text-white"
+                placeholder="Job Title"
+              />
+            </div>
+          </div>
+          
+          <div className="pt-2">
+            <p className="mb-2 text-xs text-muted-foreground">
+              * Required field
+            </p>
+            <p className="mb-4 text-xs text-muted-foreground">
+              Note: Either email or phone number must be provided
+            </p>
+            
+            <Button
+              type="submit"
+              disabled={loading || (!formData.email && !formData.phone)}
+              className="w-full bg-purple-600/80 hover:bg-purple-600 text-white"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding Lead...
+                </>
+              ) : (
+                'Add Lead'
+              )}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

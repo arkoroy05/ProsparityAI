@@ -6,9 +6,9 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    task_type: 'call',
+    type: 'call',
     scheduled_at: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString().slice(0, 16), // Default to 1 hour from now
-    priority: 3,
+    priority: 3, // Initialize as number
     lead_id: leadId || '',
     ai_instructions: '',
   });
@@ -43,7 +43,16 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Handle priority as a number
+    if (name === 'priority') {
+      const numValue = Number(value);
+      if (!isNaN(numValue) && numValue >= 1 && numValue <= 5) {
+        setFormData((prev) => ({ ...prev, priority: numValue }));
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -61,6 +70,20 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
       if (!formData.lead_id && !leadId) {
         throw new Error('Please select a lead for this task');
       }
+
+      // Ensure priority is a valid number
+      if (typeof formData.priority !== 'number' || formData.priority < 1 || formData.priority > 5) {
+        throw new Error('Invalid priority value. Must be a number between 1 and 5');
+      }
+
+      // Debug log
+      console.log('Submitting task with data:', {
+        ...formData,
+        priority: {
+          value: formData.priority,
+          type: typeof formData.priority
+        }
+      });
       
       // Create task
       const { task, error: taskError } = await createTask(
@@ -81,7 +104,7 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
       setFormData({
         title: '',
         description: '',
-        task_type: 'call',
+        type: 'call',
         scheduled_at: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString().slice(0, 16),
         priority: 3,
         lead_id: leadId || '',
@@ -124,14 +147,14 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
           </div>
           
           <div>
-            <label htmlFor="task_type" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="type" className="block text-sm font-medium text-gray-300">
               Task Type *
             </label>
             <select
-              id="task_type"
-              name="task_type"
+              id="type"
+              name="type"
               required
-              value={formData.task_type}
+              value={formData.type}
               onChange={handleChange}
               className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
             >

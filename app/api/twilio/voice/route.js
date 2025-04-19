@@ -1,126 +1,160 @@
 import { NextResponse } from 'next/server';
 import twilio from 'twilio';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { supabase } from '@/lib/supabase';
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+const { VoiceResponse } = twilio.twiml;
 
 export async function POST(request) {
   try {
+    console.log('Twilio voice webhook called');
+    
+    // Parse the form data from Twilio
     const formData = await request.formData();
     const callSid = formData.get('CallSid');
-    const speechResult = formData.get('SpeechResult');
+    const taskId = formData.get('taskId');
+    const leadId = formData.get('leadId');
+    const aiInstructions = formData.get('aiInstructions');
+    
+    console.log('Call details:', { 
+      callSid, 
+      taskId, 
+      leadId,
+      hasAiInstructions: !!aiInstructions
+    });
 
-    // Fetch call details from database
-    const { data: callLog } = await supabase
-      .from('call_logs')
-      .select(`
-        *,
-        leads:lead_id (*),
-        companies:company_id (*),
-        company_settings:companies(company_settings(*))
-      `)
-      .eq('call_sid', callSid)
-      .single();
+    // Create a new TwiML response
+    const twiml = new VoiceResponse();
 
-    if (!callLog) {
-      throw new Error('Call log not found');
-    }
+    try {
+      // Fetch task and lead information if available
+      let greeting = 'Hello from Prosperity AI.';
+      let script = '';
 
-    const twiml = new twilio.twiml.VoiceResponse();
+      if (taskId && leadId) {
+        const { data: task } = await supabase
+          .from('tasks')
+          .select(`
+            *,
+            leads (
+              name,
+              company_name
+            )
+          `)
+          .eq('id', taskId)
+          .single();
 
-    // If this is the start of the call
-    if (!speechResult) {
-      // Get AI instructions for the company
-      const aiInstructions = callLog.companies.company_settings?.ai_instructions || '';
-
-      // Generate initial greeting
-      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-      const prompt = `You are an AI sales agent. ${aiInstructions}
-        
-        Generate a natural greeting for a sales call with the following lead:
-        Name: ${callLog.leads.name}
-        Company: ${callLog.companies.name}
-        
-        Keep it brief and conversational. Don't ask more than one question.`;
-
-      const result = await model.generateContent(prompt);
-      const greeting = result.response.text();
-
-      // Start the call
-      twiml.say({ voice: 'Polly.Amy' }, greeting);
-      
-      // Listen for the response
-      twiml.gather({
-        input: 'speech',
-        action: '/api/twilio/voice',
-        method: 'POST',
-        speechTimeout: 'auto',
-        speechModel: 'phone_call',
-      });
-    } else {
-      // Process the lead's response
-      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-      const prompt = `You are an AI sales agent. ${callLog.companies.company_settings?.ai_instructions || ''}
-        
-        Previous conversation:
-        ${JSON.stringify(callLog.notes || [])}
-        
-        Lead's response: "${speechResult}"
-        
-        Generate a natural response that moves the conversation forward. Keep it brief and end with a question.
-        If the lead shows interest, try to schedule a follow-up. If they're not interested, politely end the call.`;
-
-      const result = await model.generateContent(prompt);
-      const response = result.response.text();
-
-      // Update call notes
-      const updatedNotes = [
-        ...(callLog.notes || []),
-        {
-          timestamp: new Date().toISOString(),
-          input: speechResult,
-          response: response
+        if (task?.leads) {
+          const leadName = task.leads.name;
+          const companyName = task.leads.company_name;
+          
+          greeting = `Hello ${leadName}${companyName ? ` from ${companyName}` : ''}, this is an AI assistant from Prosperity AI.`;
+          script = aiInstructions || 'I am calling to follow up on your interest in our services.';
         }
-      ];
+      }
 
+      // Log the call in our database
       await supabase
         .from('call_logs')
-        .update({ notes: updatedNotes })
-        .eq('id', callLog.id);
+        .insert([{
+          call_sid: callSid,
+          task_id: taskId,
+          lead_id: leadId,
+          status: 'in-progress',
+          notes: {
+            greeting,
+            script,
+            timestamp: new Date().toISOString()
+          }
+        }]);
 
-      // Speak the response
-      twiml.say({ voice: 'Polly.Amy' }, response);
+      // Add pause for natural conversation
+      twiml.pause({ length: 1 });
+      
+      // Add the greeting
+      twiml.say(
+        { voice: 'Polly.Amy' },
+        greeting
+      );
 
-      // Continue listening
-      twiml.gather({
+      // Add another pause
+      twiml.pause({ length: 1 });
+      
+      // Add the script if available
+      if (script) {
+        twiml.say(
+          { voice: 'Polly.Amy' },
+          script
+        );
+      }
+
+      // Add gather for response
+      const gather = twiml.gather({
         input: 'speech',
-        action: '/api/twilio/voice',
+        action: `/api/twilio/voice-input?callSid=${callSid}`,
         method: 'POST',
         speechTimeout: 'auto',
-        speechModel: 'phone_call',
+        language: 'en-US'
       });
-    }
 
-    // Return TwiML
-    return new NextResponse(twiml.toString(), {
+      gather.say(
+        { voice: 'Polly.Amy' },
+        'Please let me know how I can help you today.'
+      );
+
+    } catch (error) {
+      console.error('Error fetching task/lead data:', error);
+      
+      // Fallback greeting if there's an error
+      twiml.say(
+        { voice: 'Polly.Amy' },
+        'Hello, this is an AI assistant from Prosperity AI. I apologize, but I am having trouble accessing your information. Please leave a message and someone will get back to you shortly.'
+      );
+    }
+    
+    // Convert TwiML to string
+    const twimlString = twiml.toString();
+    
+    // Log the TwiML response
+    console.log('TwiML response:', twimlString);
+    
+    // Return the TwiML response
+    return new NextResponse(twimlString, {
+      status: 200,
       headers: {
         'Content-Type': 'text/xml',
       },
     });
   } catch (error) {
-    console.error('Error handling voice webhook:', error);
-    const twiml = new twilio.twiml.VoiceResponse();
+    console.error('Error in Twilio voice webhook:', error);
+    
+    // Return a basic TwiML response in case of error
+    const twiml = new VoiceResponse();
     twiml.say(
       { voice: 'Polly.Amy' },
-      'I apologize, but I encountered an error. Please try again later.'
+      'I apologize, but an error occurred with this call. Please try again later.'
     );
-    twiml.hangup();
-
+    
     return new NextResponse(twiml.toString(), {
+      status: 500,
       headers: {
         'Content-Type': 'text/xml',
       },
     });
   }
+}
+
+// To handle Twilio's validation requirements
+export async function GET(request) {
+  const twiml = new VoiceResponse();
+  twiml.say(
+    { voice: 'Polly.Amy' },
+    'Twilio webhook is working.'
+  );
+  
+  return new NextResponse(twiml.toString(), {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/xml',
+    },
+  });
 } 
