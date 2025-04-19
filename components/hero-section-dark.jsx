@@ -53,7 +53,7 @@ const HeroSection = React.forwardRef((
       dark: "https://farmui.vercel.app/dashboard.png",
     },
     gridOptions,
-    ...props
+    ...props  
   },
   ref,
 ) => {

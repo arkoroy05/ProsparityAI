@@ -16,7 +16,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <NavBar items={navItems} />
+  
 
       {/* Hero Section with ID for navigation */}
       <section id="home">
