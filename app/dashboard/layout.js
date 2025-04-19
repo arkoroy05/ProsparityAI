@@ -13,12 +13,12 @@ const NavItem = ({ href, icon, label, active, collapsed }) => (
     href={href}
     className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-300 ${
       active ? "text-white bg-purple-700" : "text-gray-300 hover:bg-gray-800 hover:text-white"
-    } ${collapsed ? "justify-center w-12 mx-auto" : ""}`}
+    } ${collapsed ? "justify-center" : ""}`}
   >
-    <div className={collapsed ? "mx-auto" : ""}>
+    <div className={`flex items-center ${collapsed ? "mx-0" : ""}`}>
       {icon}
     </div>
-    <span className={`ml-3 transition-all duration-300 ${collapsed ? "w-0 hidden" : "inline-block"}`}>
+    <span className={`ml-3 transition-all duration-300 ${collapsed ? "hidden" : "inline-block"}`}>
       {label}
     </span>
   </Link>
@@ -237,7 +237,7 @@ export default function DashboardLayout({ children }) {
 
       {/* Desktop sidebar */}
       <div className="hidden lg:flex lg:flex-shrink-0">
-        <div className={`flex flex-col transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'w-20' : 'w-64'}`}>
+        <div className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${isSidebarCollapsed ? 'w-20' : 'w-64'}`}>
           <div className="flex flex-col h-0 flex-1 bg-gray-900">
             <div className="flex items-center h-16 flex-shrink-0 px-4 border-b border-gray-800 justify-between">
               <h1 className={`font-bold text-white transition-opacity duration-300 ${isSidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100 text-xl'}`}>
