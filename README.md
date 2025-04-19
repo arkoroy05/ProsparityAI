@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Prosparity.AI
+
+Prosparity.AI is a generative AI-powered sales agent focused on lead management and outreach. The application helps sales teams manage leads, track follow-ups, and use AI to optimize the sales process.
+
+## Project Structure
+
+The project is organized using Next.js App Router architecture:
+
+```
+/app
+  /api                # API routes
+  /auth              # Authentication pages
+  /dashboard         # Dashboard and main features
+  /components        # Reusable UI components
+  /lib               # Utility functions and hooks
+```
+
+## Features
+
+- **Lead Management**: Track leads, score them, and manage their status
+- **Task Management**: Create tasks, set reminders, and track progress
+- **AI Instructions**: Configure how the AI agent interacts with leads
+- **Company Management**: Set up your company profile and preferences
+- **Authentication**: Secure login, registration, and company setup
+
+## Technologies
+
+- **Next.js 14**: React framework with App Router
+- **Supabase**: Backend as a service (Auth, Database)
+- **Tailwind CSS**: Utility-first CSS framework
+- **React**: UI framework
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up environment variables:
+   - Create a `.env.local` file with:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+4. Run the development server: `npm run dev`
+5. Visit `http://localhost:3000` in your browser
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Project Migration
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+This project is currently being migrated from Next.js Pages Router to App Router. The migration plan includes:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+1. Creating proper folder structure in the app directory
+2. Migrating components and pages
+3. Implementing authentication with Supabase
+4. Updating API routes
+5. Ensuring proper state management
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Contributing
 
-## Learn More
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Commit your changes: `git commit -m 'Add some feature'`
+4. Push to the branch: `git push origin feature/your-feature-name`
+5. Submit a pull request
 
-To learn more about Next.js, take a look at the following resources:
+## License
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Copyright (c) 2024 Prosparity.AI. All rights reserved.

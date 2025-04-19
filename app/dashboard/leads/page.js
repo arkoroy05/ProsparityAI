@@ -1,12 +1,58 @@
-import { useState } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+"use client";
+
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 import LeadList from '@/components/leads/LeadList';
 import LeadForm from '@/components/leads/LeadForm';
 import CsvUpload from '@/components/leads/CsvUpload';
 
-const LeadsPage = ({ user, companyId }) => {
+export default function LeadsPage() {
   const [selectedTab, setSelectedTab] = useState('list');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [user, setUser] = useState(null);
+  const [companyId, setCompanyId] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Get current session
+    const getSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(session.user);
+          await getCompanyId(session.user.id);
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error getting session:', error);
+        setLoading(false);
+      }
+    };
+
+    getSession();
+  }, []);
+
+  const getCompanyId = async (userId) => {
+    try {
+      const { data: companies, error } = await supabase
+        .from('companies')
+        .select('id')
+        .eq('owner_id', userId)
+        .limit(1);
+      
+      if (error) throw error;
+      
+      if (companies && companies.length > 0) {
+        setCompanyId(companies[0].id);
+      }
+      
+      setLoading(false);
+    } catch (error) {
+      console.error('Error getting company:', error);
+      setLoading(false);
+    }
+  };
 
   const handleLeadAdded = () => {
     // Trigger a refresh of the lead list
@@ -20,6 +66,14 @@ const LeadsPage = ({ user, companyId }) => {
     { id: 'add', label: 'Add Lead' },
     { id: 'import', label: 'Import CSV' },
   ];
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-full">Loading...</div>;
+  }
+
+  if (!user || !companyId) {
+    return <div className="flex items-center justify-center h-full">Please log in to view this page</div>;
+  }
 
   return (
     <div>
@@ -75,11 +129,4 @@ const LeadsPage = ({ user, companyId }) => {
       )}
     </div>
   );
-};
-
-// Apply dashboard layout
-LeadsPage.getLayout = (page) => {
-  return <DashboardLayout {...page.props}>{page}</DashboardLayout>;
-};
-
-export default LeadsPage; 
+} 
