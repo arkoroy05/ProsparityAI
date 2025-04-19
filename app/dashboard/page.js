@@ -1,120 +1,255 @@
 "use client"
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import Stats from '@/components/dashboard/Stats';
-import AiInstructions from '@/components/dashboard/AiInstructions';
+import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
+import AiInstructions from "@/components/dashboard/AiInstructions"
+import { Calendar, Users, FileText, BarChart3, ArrowRight, Download, Search } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
 
 export default function DashboardPage() {
-  const [user, setUser] = useState(null);
-  const [companyId, setCompanyId] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [company, setCompany] = useState(null);
+  const [user, setUser] = useState(null)
+  const [companyId, setCompanyId] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [company, setCompany] = useState(null)
+  const [dateRange, setDateRange] = useState("Jan 20, 2023 - Feb 09, 2023")
 
   useEffect(() => {
     // Get current session
     const getSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
         if (session?.user) {
-          setUser(session.user);
-          await getCompanyId(session.user.id);
+          setUser(session.user)
+          await getCompanyId(session.user.id)
         } else {
-          setLoading(false);
+          setLoading(false)
         }
       } catch (error) {
-        console.error('Error getting session:', error);
-        setLoading(false);
+        console.error("Error getting session:", error)
+        setLoading(false)
       }
-    };
+    }
 
-    getSession();
-  }, []);
+    getSession()
+  }, [])
 
   const getCompanyId = async (userId) => {
     try {
-      const { data: companies, error } = await supabase
-        .from('companies')
-        .select('*')
-        .eq('owner_id', userId)
-        .limit(1);
-      
-      if (error) throw error;
-      
+      const { data: companies, error } = await supabase.from("companies").select("*").eq("owner_id", userId).limit(1)
+
+      if (error) throw error
+
       if (companies && companies.length > 0) {
-        setCompanyId(companies[0].id);
-        setCompany(companies[0]);
+        setCompanyId(companies[0].id)
+        setCompany(companies[0])
       }
-      
-      setLoading(false);
+
+      setLoading(false)
     } catch (error) {
-      console.error('Error getting company:', error);
-      setLoading(false);
+      console.error("Error getting company:", error)
+      setLoading(false)
     }
-  };
+  }
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    )
   }
 
   if (!user || !companyId) {
-    return <div className="flex items-center justify-center h-full">Please log in to view this page</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4">
+        <h2 className="text-xl font-semibold">Please log in to view this page</h2>
+        <Button variant="default" asChild>
+          <a href="/auth/login">Go to Login</a>
+        </Button>
+      </div>
+    )
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Welcome to Prosparity.AI, your AI-powered sales assistant.
-        </p>
+    <div className="bg-black text-white min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <p className="text-gray-400 mt-1">Welcome back, {user.email?.split("@")[0] || "User"}</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Search..."
+                className="pl-10 bg-gray-900 border-gray-700 text-white w-64 focus:ring-purple-500 focus:border-purple-500"
+              />
+            </div>
+            <div className="flex items-center gap-2 bg-gray-900 px-4 py-2 rounded-md">
+              <Calendar className="h-4 w-4 text-gray-400" />
+              <span className="text-sm text-gray-300">{dateRange}</span>
+            </div>
+            <Button variant="outline" className="border-gray-700 text-gray-300">
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <Tabs defaultValue="overview" className="mb-8">
+          <TabsList className="bg-gray-900 border-gray-800">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              Reports
+            </TabsTrigger>
+            <TabsTrigger
+              value="notifications"
+              className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+            >
+              Notifications
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="mt-6">
+            {/* Stats Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <Card className="bg-gray-900 border-gray-800 shadow-lg">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-gray-400">Total Revenue</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-gray-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">$45,231.89</div>
+                  <p className="text-xs text-green-500 mt-1">+20.1% from last month</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-900 border-gray-800 shadow-lg">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-gray-400">Subscriptions</CardTitle>
+                  <Users className="h-4 w-4 text-gray-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">+2,350</div>
+                  <p className="text-xs text-green-500 mt-1">+180.1% from last month</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-900 border-gray-800 shadow-lg">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-gray-400">Sales</CardTitle>
+                  <FileText className="h-4 w-4 text-gray-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">+12,234</div>
+                  <p className="text-xs text-green-500 mt-1">+19% from last month</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-900 border-gray-800 shadow-lg">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-gray-400">Active Now</CardTitle>
+                  <Users className="h-4 w-4 text-gray-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">+573</div>
+                  <p className="text-xs text-green-500 mt-1">+201 since last hour</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* AI Instructions Section */}
+            <Card className="bg-gray-900 border-gray-800 shadow-lg mb-8">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold">AI Agent Instructions</CardTitle>
+                <CardDescription className="text-gray-400">
+                  Customize how your AI sales agent interacts with leads
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AiInstructions companyId={companyId} />
+              </CardContent>
+            </Card>
+
+            {/* Quick Links */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="bg-gray-900 border-gray-800 shadow-lg hover:bg-gray-800 transition-all group">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-medium flex items-center">
+                      <Users className="h-5 w-5 mr-2 text-purple-500" />
+                      Manage Leads
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-400">View, add, or import new leads for your business.</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="link" className="text-purple-500 p-0 group-hover:text-purple-400" asChild>
+                      <a href="/dashboard/leads" className="flex items-center">
+                        Go to Leads <ArrowRight className="ml-2 h-4 w-4" />
+                      </a>
+                    </Button>
+                  </CardFooter>
+                </Card>
+
+                <Card className="bg-gray-900 border-gray-800 shadow-lg hover:bg-gray-800 transition-all group">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-medium flex items-center">
+                      <Calendar className="h-5 w-5 mr-2 text-purple-500" />
+                      View Tasks
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-400">Check your pending tasks and follow-ups.</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="link" className="text-purple-500 p-0 group-hover:text-purple-400" asChild>
+                      <a href="/dashboard/tasks" className="flex items-center">
+                        Go to Tasks <ArrowRight className="ml-2 h-4 w-4" />
+                      </a>
+                    </Button>
+                  </CardFooter>
+                </Card>
+
+                <Card className="bg-gray-900 border-gray-800 shadow-lg hover:bg-gray-800 transition-all group">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-medium flex items-center">
+                      <FileText className="h-5 w-5 mr-2 text-purple-500" />
+                      Sales Scripts
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-400">Create and customize your sales scripts.</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="link" className="text-purple-500 p-0 group-hover:text-purple-400" asChild>
+                      <a href="/dashboard/sales-scripts" className="flex items-center">
+                        Manage Scripts <ArrowRight className="ml-2 h-4 w-4" />
+                      </a>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* Stats Section */}
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Overview</h2>
-        <Stats companyId={companyId} />
-      </section>
-
-      {/* AI Instructions Section */}
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">AI Agent Instructions</h2>
-        <div className="bg-white shadow rounded-lg p-6">
-          <p className="text-gray-600 mb-4">
-            Customize how your AI sales agent interacts with leads. These instructions will guide
-            how the AI engages with potential customers.
-          </p>
-          <AiInstructions companyId={companyId} />
-        </div>
-      </section>
-
-      {/* Quick Links */}
-      <section>
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-white shadow rounded-lg p-6 hover:shadow-md transition-shadow">
-            <h3 className="font-medium text-gray-900 mb-2">Manage Leads</h3>
-            <p className="text-gray-500 mb-4">View, add, or import new leads for your business.</p>
-            <a href="/dashboard/leads" className="text-indigo-600 hover:text-indigo-500 font-medium">
-              Go to Leads →
-            </a>
-          </div>
-          <div className="bg-white shadow rounded-lg p-6 hover:shadow-md transition-shadow">
-            <h3 className="font-medium text-gray-900 mb-2">View Tasks</h3>
-            <p className="text-gray-500 mb-4">Check your pending tasks and follow-ups.</p>
-            <a href="/dashboard/tasks" className="text-indigo-600 hover:text-indigo-500 font-medium">
-              Go to Tasks →
-            </a>
-          </div>
-          <div className="bg-white shadow rounded-lg p-6 hover:shadow-md transition-shadow">
-            <h3 className="font-medium text-gray-900 mb-2">Sales Scripts</h3>
-            <p className="text-gray-500 mb-4">Create and customize your sales scripts.</p>
-            <a href="/dashboard/sales-scripts" className="text-indigo-600 hover:text-indigo-500 font-medium">
-              Manage Scripts →
-            </a>
-          </div>
-        </div>
-      </section>
     </div>
-  );
-} 
+  )
+}

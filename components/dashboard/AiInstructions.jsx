@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Save, Sparkles } from "lucide-react";
 
 const AiInstructions = ({ companyId, initialInstructions = '' }) => {
   const [instructions, setInstructions] = useState(initialInstructions);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState(null);
+  const [generating, setGenerating] = useState(false);
 
   const handleSave = async () => {
     try {
@@ -13,7 +18,6 @@ const AiInstructions = ({ companyId, initialInstructions = '' }) => {
       setError(null);
       setSaveSuccess(false);
       
-      // Update company record with AI instructions
       const { error: updateError } = await supabase
         .from('companies')
         .update({
@@ -28,7 +32,6 @@ const AiInstructions = ({ companyId, initialInstructions = '' }) => {
       
       setSaveSuccess(true);
       
-      // Hide success message after 3 seconds
       setTimeout(() => {
         setSaveSuccess(false);
       }, 3000);
@@ -40,7 +43,6 @@ const AiInstructions = ({ companyId, initialInstructions = '' }) => {
     }
   };
 
-  // Get existing additional_details to preserve other fields
   const getExistingDetails = async () => {
     try {
       const { data, error } = await supabase
@@ -58,58 +60,101 @@ const AiInstructions = ({ companyId, initialInstructions = '' }) => {
     }
   };
 
+  const generateInstructions = async () => {
+    setGenerating(true);
+    try {
+      // This is a placeholder. In a real app, you would call an AI service
+      // to generate instructions based on the company's industry, products, etc.
+      setTimeout(() => {
+        const sampleInstructions =
+          "You are an AI sales assistant for our company. When interacting with potential customers:\n\n" +
+          "1. Introduce yourself as an AI assistant for [Company Name]\n" +
+          "2. Be friendly, professional, and helpful at all times\n" +
+          "3. Ask qualifying questions to understand customer needs\n" +
+          "4. Highlight our key product benefits based on their responses\n" +
+          "5. Offer to schedule a demo with a human sales representative\n" +
+          "6. Collect contact information for follow-up\n\n" +
+          "Avoid being pushy or using hard-sell tactics. Focus on providing value and building trust."
+
+        setInstructions(sampleInstructions);
+        setGenerating(false);
+      }, 1500);
+    } catch (error) {
+      console.error("Error generating AI instructions:", error);
+      setGenerating(false);
+    }
+  };
+
   return (
-    <div className="p-6 bg-white rounded-lg shadow">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <h3 className="text-lg font-medium text-gray-900">AI Agent Instructions</h3>
-        
-        <div className="flex items-center mt-2 space-x-2 sm:mt-0">
-          {saveSuccess && (
-            <span className="text-sm text-green-600">
-              Instructions saved!
-            </span>
-          )}
-          
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300"
+    <Tabs defaultValue="edit" className="w-full">
+      <TabsList className="bg-gray-800 border-gray-700">
+        <TabsTrigger value="edit" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+          Edit Instructions
+        </TabsTrigger>
+        <TabsTrigger value="preview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+          Preview
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="edit" className="mt-4">
+        <div className="flex justify-between mb-4">
+          <Button
+            variant="outline"
+            className="border-gray-700 text-gray-300 hover:bg-gray-800"
+            onClick={generateInstructions}
+            disabled={generating}
           >
-            {saving ? 'Saving...' : 'Save Instructions'}
-          </button>
+            <Sparkles className="mr-2 h-4 w-4" />
+            {generating ? "Generating..." : "Generate with AI"}
+          </Button>
+
+          <Button 
+            onClick={handleSave} 
+            disabled={saving}
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {saving ? "Saving..." : "Save Instructions"}
+          </Button>
         </div>
-      </div>
-      
-      {error && (
-        <div className="p-4 mt-4 text-sm text-red-700 bg-red-100 rounded-md">
-          {error}
-        </div>
-      )}
-      
-      <div className="mt-4">
-        <p className="mb-2 text-sm text-gray-500">
-          Provide general instructions for your AI sales agent. These instructions will be used as a baseline for all AI interactions with your leads.
-        </p>
-        
-        <textarea
+
+        {error && (
+          <div className="p-4 mb-4 text-sm text-red-400 bg-red-900/50 rounded-md border border-red-700">
+            {error}
+          </div>
+        )}
+
+        {saveSuccess && (
+          <div className="p-4 mb-4 text-sm text-green-400 bg-green-900/50 rounded-md border border-green-700">
+            Instructions saved successfully!
+          </div>
+        )}
+
+        <Textarea
           value={instructions}
           onChange={(e) => setInstructions(e.target.value)}
-          className="block w-full h-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm resize-y focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          placeholder="Example: When contacting leads, always mention our company values of quality, reliability, and customer satisfaction. Ask about their current challenges related to [industry problem]. Highlight our [product feature] which addresses this issue. Don't be pushy, but suggest a follow-up demo if they show interest."
+          placeholder="Enter instructions for your AI sales agent..."
+          className="min-h-[200px] bg-gray-800 border-gray-700 text-white"
         />
-        
-        <div className="mt-2 text-xs text-gray-500">
-          <p>Tips for effective instructions:</p>
-          <ul className="pl-5 mt-1 list-disc">
-            <li>Specify your company's tone and communication style</li>
-            <li>Include key talking points about your products/services</li>
-            <li>Mention any specific questions the AI should ask</li>
-            <li>Add information about common objections and how to handle them</li>
-            <li>Provide guidance on when to schedule follow-ups</li>
-          </ul>
+
+        <p className="text-sm text-gray-400 mt-2">
+          These instructions will guide how your AI agent interacts with potential customers. Be specific about your
+          company's tone, values, and sales approach.
+        </p>
+      </TabsContent>
+
+      <TabsContent value="preview" className="mt-4">
+        <div className="rounded-lg bg-gray-800 border border-gray-700 p-6">
+          {instructions ? (
+            <div className="whitespace-pre-wrap text-gray-300">{instructions}</div>
+          ) : (
+            <p className="text-gray-400 italic">
+              No instructions provided yet. Switch to the Edit tab to add instructions.
+            </p>
+          )}
         </div>
-      </div>
-    </div>
+      </TabsContent>
+    </Tabs>
   );
 };
 
