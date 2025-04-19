@@ -187,25 +187,6 @@ export default async function InsightsPage() {
   const avgCallDuration = calculateAverageDuration(callLogs);
   const metrics = extractMetricsFromInsights(leads);
   
-  // Convert metrics object to array for mapping
-  const metricCards = [
-    {
-      title: "Qualification Rate",
-      value: `${Math.round(metrics.qualificationRate)}%`,
-      description: "Percentage of leads that qualified as potential customers"
-    },
-    {
-      title: "Response Rate",
-      value: `${Math.round(metrics.responseRate)}%`,
-      description: "Percentage of leads that responded to outreach"
-    },
-    {
-      title: "Positive Sentiment",
-      value: `${metrics.sentiments.positive}`,
-      description: "Leads with positive sentiment towards your product"
-    }
-  ];
-  
   return (
     <Container maxW="7xl" py={8}>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -224,7 +205,7 @@ export default async function InsightsPage() {
           value={`${avgCallDuration}m`}
           description="Average duration of AI calls"
         />
-        {metricCards.map((metric, index) => (
+        {metrics.map((metric, index) => (
           <MetricCard
             key={index}
             title={metric.title}
