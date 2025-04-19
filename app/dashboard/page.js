@@ -7,7 +7,7 @@ import { Calendar, Users, FileText, BarChart3, ArrowRight, Download, Search } fr
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
+import { TextShimmer } from "@/components/ui/text-shimmer"
 
 export default function DashboardPage() {
   const [user, setUser] = useState(null)
@@ -80,27 +80,22 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-gray-400 mt-1">Welcome back, {user.email?.split("@")[0] || "User"}</p>
-          </div>
+          
+          <TextShimmer
+            duration={1.4}
+            className='text-6xl font-extralight [--base-color:theme(colors.purple.600)] [--base-gradient-color:theme(colors.pink.400)] dark:[--base-color:theme(colors.purple.700)] dark:[--base-gradient-color:theme(colors.pink.500)] [--text-color:theme(colors.white)] [--text-gradient-color:theme(colors.gray.900)] [--text-shadow:0_0_0.5rem_theme(colors.purple.600),0_0_1rem_theme(colors.purple.600),0_0_2rem_theme(colors.purple.600)] [--text-shadow-dark:0_0_0.5rem_theme(colors.purple.700),0_0_1rem_theme(colors.purple.700),0_0_2rem_theme(colors.purple.700)]'
+          >
+          Welcome back, {user.email?.split("@")[0] || "User"}
+          </TextShimmer>
           <div className="flex items-center gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Search..."
-                className="pl-10 bg-gray-900 border-gray-700 text-white w-64 focus:ring-purple-500 focus:border-purple-500"
-              />
+              
             </div>
             <div className="flex items-center gap-2 bg-gray-900 px-4 py-2 rounded-md">
               <Calendar className="h-4 w-4 text-gray-400" />
               <span className="text-sm text-gray-300">{dateRange}</span>
             </div>
-            <Button variant="outline" className="border-gray-700 text-gray-300">
-              <Download className="h-4 w-4 mr-2" />
-              Download
-            </Button>
+          
           </div>
         </div>
 
