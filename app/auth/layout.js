@@ -77,7 +77,7 @@ export default function AuthLayout({ children }) {
                 AI-Powered Sales Assistant
               </h2>
               <p className="text-xl mb-8">
-                Boost your sales team's productivity with our intelligent lead management and follow-up system.
+                Boost your sales teams productivity with our intelligent lead management and follow-up system.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white bg-opacity-10 p-4 rounded-lg">
