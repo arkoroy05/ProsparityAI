@@ -15,7 +15,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [company, setCompany] = useState(null)
   const [dateRange, setDateRange] = useState("Jan 20, 2023 - Feb 09, 2023")
-  
+  const [activeTab, setActiveTab] = useState("overview")
+
   useEffect(() => {
     // Get current session
     const getSession = async () => {
@@ -100,7 +101,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="overview" className="mb-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
           <TabsList className="bg-gray-900 border-gray-800">
             <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
               Overview
@@ -242,6 +243,18 @@ export default function DashboardPage() {
                 </Card>
               </div>
             </div>
+          </TabsContent>
+          
+          <TabsContent value="analytics" className="mt-6">
+            <div className="text-gray-400">Analytics content here</div>
+          </TabsContent>
+          
+          <TabsContent value="reports" className="mt-6">
+            <div className="text-gray-400">Reports content here</div>
+          </TabsContent>
+          
+          <TabsContent value="notifications" className="mt-6">
+            <div className="text-gray-400">Notifications content here</div>
           </TabsContent>
         </Tabs>
       </div>

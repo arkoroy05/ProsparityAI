@@ -8,21 +8,32 @@ import { Home, Users, Calendar, FileText, Settings, LogOut, Menu, X, Bell, BarCh
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
-const NavItem = ({ href, icon, label, active, collapsed }) => (
-  <Link
-    href={href}
-    className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-300 ${
-      active ? "text-white bg-purple-700" : "text-gray-300 hover:bg-gray-800 hover:text-white"
-    } ${collapsed ? "justify-center" : ""}`}
-  >
-    <div className={`flex items-center ${collapsed ? "mx-0" : ""}`}>
-      {icon}
-    </div>
-    <span className={`ml-3 transition-all duration-300 ${collapsed ? "hidden" : "inline-block"}`}>
-      {label}
-    </span>
-  </Link>
-)
+const NavItem = ({ href, icon, label, active, collapsed }) => {
+  const router = useRouter()
+
+  const handleClick = (e) => {
+    e.preventDefault()
+    // Force a full window refresh
+    window.location.href = href
+  }
+
+  return (
+    <Link
+      href={href}
+      onClick={handleClick}
+      className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-300 ${
+        active ? "text-white bg-purple-700" : "text-gray-300 hover:bg-gray-800 hover:text-white"
+      } ${collapsed ? "justify-center" : ""}`}
+    >
+      <div className={`flex items-center ${collapsed ? "mx-0" : ""}`}>
+        {icon}
+      </div>
+      <span className={`ml-3 transition-all duration-300 ${collapsed ? "hidden" : "inline-block"}`}>
+        {label}
+      </span>
+    </Link>
+  )
+}
 
 export default function DashboardLayout({ children }) {
   const router = useRouter()
@@ -111,7 +122,14 @@ export default function DashboardLayout({ children }) {
     }
   }
 
-  const isActive = (path) => pathname.startsWith(path)
+  const isActive = (path) => {
+    // For dashboard home, only highlight when exactly at /dashboard
+    if (path === "/dashboard") {
+      return pathname === "/dashboard";
+    }
+    // For other routes, check if we're in that section
+    return pathname.startsWith(path) && pathname !== "/dashboard";
+  }
 
   const navigation = [
     {

@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function LeadsPage() {
-  const [selectedTab, setSelectedTab] = useState('list');
+  const [selectedTab, setSelectedTab] = useState("list");
   const [refreshKey, setRefreshKey] = useState(0);
   const [user, setUser] = useState(null);
   const [companyId, setCompanyId] = useState(null);
@@ -87,7 +87,7 @@ export default function LeadsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue={selectedTab} onValueChange={setSelectedTab} className="w-full">
+      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
         <TabsList className="bg-gray-900 border-gray-800">
           <TabsTrigger 
             value="list" 
@@ -132,9 +132,9 @@ export default function LeadsPage() {
         <TabsContent value="import" className="mt-6">
           <Card className="bg-gray-900 border-gray-800 shadow-lg p-6">
             <CsvUpload 
-              companyId={companyId} 
-              userId={user?.id} 
-              onSuccess={handleLeadAdded} 
+              companyId={companyId}
+              userId={user?.id}
+              onSuccess={handleLeadAdded}
             />
           </Card>
         </TabsContent>
