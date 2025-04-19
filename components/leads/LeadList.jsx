@@ -225,7 +225,7 @@ const LeadList = ({ companyId, userId, onLeadSelect }) => {
             >
               <option value="desc">Descending</option>
               <option value="asc">Ascending</option>
-            </select>
+            </select> 
           </div>
         </div>
         

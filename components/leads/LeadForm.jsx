@@ -76,16 +76,20 @@ const LeadForm = ({ companyId, userId, onSuccess }) => {
   };
 
   return (
-    <Card className="bg-[#1a1c23] border-[#2a2d35]">
+    <Card className="bg-gray-900/50 border-gray-800 shadow-lg hover:shadow-purple-500/10 transition-all">
       <CardHeader>
-        <CardTitle className="text-white">Add New Lead</CardTitle>
-        <CardDescription>Enter the lead's information below</CardDescription>
+        <CardTitle className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+          Add New Lead
+        </CardTitle>
+        <CardDescription className="text-gray-400">
+          Enter the lead's information below
+        </CardDescription>
       </CardHeader>
       
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-muted-foreground mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-400 mb-1">
               Full Name *
             </label>
             <Input
@@ -95,14 +99,14 @@ const LeadForm = ({ companyId, userId, onSuccess }) => {
               required
               value={formData.name}
               onChange={handleChange}
-              className="bg-[#2a2d35] border-[#353841] text-white"
+              className="bg-gray-800/50 border-gray-700 text-gray-300 focus:ring-purple-500/50 focus:border-purple-500/50"
               placeholder="John Doe"
             />
           </div>
           
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-muted-foreground mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-1">
                 Email
               </label>
               <Input
@@ -111,13 +115,13 @@ const LeadForm = ({ companyId, userId, onSuccess }) => {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="bg-[#2a2d35] border-[#353841] text-white"
+                className="bg-gray-800/50 border-gray-700 text-gray-300 focus:ring-purple-500/50 focus:border-purple-500/50"
                 placeholder="john@example.com"
               />
             </div>
             
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-muted-foreground mb-1">
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-400 mb-1">
                 Phone Number
               </label>
               <Input
@@ -126,15 +130,15 @@ const LeadForm = ({ companyId, userId, onSuccess }) => {
                 type="tel"
                 value={formData.phone}
                 onChange={handleChange}
-                className="bg-[#2a2d35] border-[#353841] text-white"
+                className="bg-gray-800/50 border-gray-700 text-gray-300 focus:ring-purple-500/50 focus:border-purple-500/50"
                 placeholder="+1 (555) 000-0000"
               />
             </div>
           </div>
           
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <label htmlFor="company_name" className="block text-sm font-medium text-muted-foreground mb-1">
+              <label htmlFor="company_name" className="block text-sm font-medium text-gray-400 mb-1">
                 Company
               </label>
               <Input
@@ -143,13 +147,13 @@ const LeadForm = ({ companyId, userId, onSuccess }) => {
                 type="text"
                 value={formData.company_name}
                 onChange={handleChange}
-                className="bg-[#2a2d35] border-[#353841] text-white"
+                className="bg-gray-800/50 border-gray-700 text-gray-300 focus:ring-purple-500/50 focus:border-purple-500/50"
                 placeholder="Company Name"
               />
             </div>
             
             <div>
-              <label htmlFor="designation" className="block text-sm font-medium text-muted-foreground mb-1">
+              <label htmlFor="designation" className="block text-sm font-medium text-gray-400 mb-1">
                 Job Title
               </label>
               <Input
@@ -158,30 +162,32 @@ const LeadForm = ({ companyId, userId, onSuccess }) => {
                 type="text"
                 value={formData.designation}
                 onChange={handleChange}
-                className="bg-[#2a2d35] border-[#353841] text-white"
+                className="bg-gray-800/50 border-gray-700 text-gray-300 focus:ring-purple-500/50 focus:border-purple-500/50"
                 placeholder="Job Title"
               />
             </div>
           </div>
           
           <div className="pt-2">
-            <p className="mb-2 text-xs text-muted-foreground">
-              * Required field
-            </p>
-            <p className="mb-4 text-xs text-muted-foreground">
-              Note: Either email or phone number must be provided
-            </p>
+            <div className="mb-4 space-y-2">
+              <p className="text-xs text-gray-400">
+                * Required field
+              </p>
+              <p className="text-xs text-gray-400">
+                Note: Either email or phone number must be provided
+              </p>
+            </div>
             
-            <Button
+            <Button 
               type="submit"
               disabled={loading || (!formData.email && !formData.phone)}
-              className="w-full bg-purple-600/80 hover:bg-purple-600 text-white"
+              className="w-full bg-purple-600/80 hover:bg-purple-600 text-white border border-purple-500/30 shadow-lg shadow-purple-500/5 disabled:bg-gray-800/50 disabled:border-gray-700 disabled:text-gray-500"
             >
               {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <div className="flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin mr-2"></div>
                   Adding Lead...
-                </>
+                </div>
               ) : (
                 'Add Lead'
               )}

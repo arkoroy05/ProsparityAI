@@ -77,68 +77,73 @@ export default function LeadsPage() {
   }
 
   return (
-    <div className="bg-black text-white min-h-screen">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
-          Leads Management
-        </h1>
-        <p className="mt-2 text-gray-400">
-          Efficiently manage and track your potential customers
-        </p>
+    <div className="bg-black text-white min-h-screen relative">
+      {/* Add a subtle gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-pink-900/20 pointer-events-none"></div>
+      
+      <div className="container mx-auto p-6 relative">
+        <div className="mb-8">
+          <h1 className="text-8xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+            Leads Management
+          </h1>
+          <p className="mt-2 text-gray-400">
+            Efficiently manage and track your potential customers
+          </p>
+        </div>
+
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+          <TabsList className="bg-gray-900/50 border border-gray-800">
+            <TabsTrigger 
+              value="list" 
+              className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+            >
+              Lead List
+            </TabsTrigger>
+            <TabsTrigger 
+              value="add" 
+              className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+            >
+              Add Lead
+            </TabsTrigger>
+            <TabsTrigger 
+              value="import" 
+              className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+            >
+              Import CSV
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="list" className="mt-6">
+            <Card className="bg-gray-900/50 border-gray-800 shadow-lg hover:shadow-purple-500/10 transition-all">
+              <LeadList 
+                key={refreshKey} 
+                companyId={companyId} 
+                userId={user?.id} 
+              />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="add" className="mt-6">
+            <Card className="bg-gray-900/50 border-gray-800 shadow-lg hover:shadow-pink-500/10 transition-all p-6">
+              <LeadForm 
+                companyId={companyId} 
+                userId={user?.id} 
+                onSuccess={handleLeadAdded} 
+              />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="import" className="mt-6">
+            <Card className="bg-gray-900/50 border-gray-800 shadow-lg hover:shadow-purple-500/10 transition-all p-6">
+              <CsvUpload 
+                companyId={companyId}
+                userId={user?.id}
+                onSuccess={handleLeadAdded}
+              />
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-        <TabsList className="bg-gray-900 border-gray-800">
-          <TabsTrigger 
-            value="list" 
-            className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
-          >
-            Lead List
-          </TabsTrigger>
-          <TabsTrigger 
-            value="add" 
-            className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
-          >
-            Add Lead
-          </TabsTrigger>
-          <TabsTrigger 
-            value="import" 
-            className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
-          >
-            Import CSV
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="list" className="mt-6">
-          <Card className="bg-gray-900 border-gray-800 shadow-lg">
-            <LeadList 
-              key={refreshKey} 
-              companyId={companyId} 
-              userId={user?.id} 
-            />
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="add" className="mt-6">
-          <Card className="bg-gray-900 border-gray-800 shadow-lg p-6">
-            <LeadForm 
-              companyId={companyId} 
-              userId={user?.id} 
-              onSuccess={handleLeadAdded} 
-            />
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="import" className="mt-6">
-          <Card className="bg-gray-900 border-gray-800 shadow-lg p-6">
-            <CsvUpload 
-              companyId={companyId}
-              userId={user?.id}
-              onSuccess={handleLeadAdded}
-            />
-          </Card>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }

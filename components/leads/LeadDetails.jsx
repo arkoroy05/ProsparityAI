@@ -6,7 +6,6 @@ import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
 
 const statusColors = {
   new: 'bg-blue-100 text-blue-800',
@@ -145,74 +144,176 @@ const LeadDetails = ({
   };
 
   return (
-    <Card className="bg-[#1a1c23] border-[#2a2d35]">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-white">Lead Details</CardTitle>
+    <Card className="bg-gray-900/50 border-gray-800 shadow-lg">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-gray-800">
+        <CardTitle className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+          Lead Details
+        </CardTitle>
         <Button
           variant="ghost"
           size="sm"
           onClick={onClose}
-          className="text-muted-foreground hover:text-white"
+          className="text-gray-400 hover:text-white hover:bg-gray-800/50"
         >
           Close
         </Button>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+      <CardContent className="space-y-6 p-6">
+        <div className="grid grid-cols-2 gap-6">
           <div>
-            <h3 className="text-sm font-medium text-muted-foreground">Name</h3>
+            <h3 className="text-sm font-medium text-gray-400 mb-1">Name</h3>
             <p className="text-white">{lead.name}</p>
           </div>
           
           <div>
-            <h3 className="text-sm font-medium text-muted-foreground">Company</h3>
+            <h3 className="text-sm font-medium text-gray-400 mb-1">Company</h3>
             <p className="text-white">{lead.company_name || 'N/A'}</p>
           </div>
           
           <div>
-            <h3 className="text-sm font-medium text-muted-foreground">Email</h3>
+            <h3 className="text-sm font-medium text-gray-400 mb-1">Email</h3>
             <p className="text-white">{lead.email || 'N/A'}</p>
           </div>
           
           <div>
-            <h3 className="text-sm font-medium text-muted-foreground">Phone</h3>
+            <h3 className="text-sm font-medium text-gray-400 mb-1">Phone</h3>
             <p className="text-white">{lead.phone || 'N/A'}</p>
           </div>
           
           <div>
-            <h3 className="text-sm font-medium text-muted-foreground">Job Title</h3>
+            <h3 className="text-sm font-medium text-gray-400 mb-1">Job Title</h3>
             <p className="text-white">{lead.designation || 'N/A'}</p>
           </div>
           
           <div>
-            <h3 className="text-sm font-medium text-muted-foreground">Status</h3>
+            <h3 className="text-sm font-medium text-gray-400 mb-1">Status</h3>
             <p className="text-white capitalize">{lead.status || 'New'}</p>
           </div>
         </div>
         
-        <div className="mt-6">
+        <div className="border-t border-gray-800 pt-6">
           <h3 className="text-lg font-semibold text-white mb-3">Tasks</h3>
           {loading ? (
             <div className="flex items-center justify-center py-4">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <div className="w-6 h-6 border-2 border-purple-500 rounded-full border-t-transparent animate-spin"></div>
             </div>
           ) : tasks.length > 0 ? (
             <div className="space-y-3">
               {tasks.map((task) => (
                 <div
                   key={task.id}
-                  className="p-3 rounded-lg bg-[#2a2d35] border border-[#353841]"
+                  className="p-4 rounded-lg bg-gray-800/50 border border-gray-700 hover:shadow-purple-500/5 transition-all"
                 >
-                  <p className="text-white">{task.description}</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {new Date(task.created_at).toLocaleDateString()}
+                  <p className="text-gray-300">{task.title}</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {task.description}
                   </p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs text-gray-500">
+                      {new Date(task.created_at).toLocaleDateString()}
+                    </span>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      task.status === 'completed' ? 'bg-green-900/50 text-green-300 border border-green-700/50' :
+                      task.status === 'pending' ? 'bg-yellow-900/50 text-yellow-300 border border-yellow-700/50' :
+                      'bg-gray-800 text-gray-300 border border-gray-700'
+                    }`}>
+                      {task.status}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">No tasks found for this lead.</p>
+            <p className="text-gray-500">No tasks found for this lead.</p>
+          )}
+
+          <Button
+            onClick={() => setShowNewTaskForm(!showNewTaskForm)}
+            className="mt-4 bg-purple-600/80 hover:bg-purple-600 text-white border border-purple-500/30 shadow-lg shadow-purple-500/5"
+          >
+            {showNewTaskForm ? 'Cancel' : 'Add Task'}
+          </Button>
+
+          {showNewTaskForm && (
+            <form onSubmit={handleCreateTask} className="mt-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">
+                  Task Title
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={newTaskData.title}
+                  onChange={handleTaskInputChange}
+                  className="w-full px-3 py-2 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  value={newTaskData.description}
+                  onChange={handleTaskInputChange}
+                  className="w-full px-3 py-2 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Type
+                  </label>
+                  <select
+                    name="task_type"
+                    value={newTaskData.task_type}
+                    onChange={handleTaskInputChange}
+                    className="w-full px-3 py-2 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                  >
+                    <option value="call">Call</option>
+                    <option value="email">Email</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="follow_up">Follow Up</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Priority
+                  </label>
+                  <select
+                    name="priority"
+                    value={newTaskData.priority}
+                    onChange={handleTaskInputChange}
+                    className="w-full px-3 py-2 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                  >
+                    <option value="1">Low</option>
+                    <option value="2">Medium</option>
+                    <option value="3">High</option>
+                  </select>
+                </div>
+              </div>
+
+              <Button 
+                type="submit"
+                disabled={savingTask}
+                className="w-full bg-purple-600/80 hover:bg-purple-600 text-white border border-purple-500/30 shadow-lg shadow-purple-500/5"
+              >
+                {savingTask ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin mr-2"></div>
+                    Creating...
+                  </div>
+                ) : (
+                  'Create Task'
+                )}
+              </Button>
+            </form>
           )}
         </div>
       </CardContent>
