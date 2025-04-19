@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 
 export default function AuthLayout({ children }) {
@@ -73,30 +74,20 @@ export default function AuthLayout({ children }) {
           <div className="absolute inset-0 bg-black bg-opacity-30"></div>
           <div className="absolute inset-0 flex items-center justify-center p-12">
             <div className="max-w-2xl text-center text-white">
-              <h2 className="text-4xl font-extrabold mb-6">
-                AI-Powered Sales Assistant
-              </h2>
-              <p className="text-xl mb-8">
-                Boost your sales teams productivity with our intelligent lead management and follow-up system.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white bg-opacity-10 p-4 rounded-lg">
-                  <h3 className="font-bold text-lg mb-2">Smart Lead Scoring</h3>
-                  <p>Automatically prioritize leads based on their engagement and conversion potential.</p>
-                </div>
-                <div className="bg-white bg-opacity-10 p-4 rounded-lg">
-                  <h3 className="font-bold text-lg mb-2">AI Follow-up</h3>
-                  <p>Never miss a follow-up with automated, personalized communication.</p>
-                </div>
-                <div className="bg-white bg-opacity-10 p-4 rounded-lg">
-                  <h3 className="font-bold text-lg mb-2">Custom Sales Scripts</h3>
-                  <p>Create and optimize your sales scripts with AI assistance.</p>
-                </div>
+              <div className="mb-8 flex justify-center">
+                <Image
+                  src="/"
+                  alt="AI Sales Assistant"
+                  width={128}
+                  height={128}
+                  className="opacity-90"
+                />
               </div>
+              
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}
