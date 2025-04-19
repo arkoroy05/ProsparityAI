@@ -7,6 +7,7 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
     title: '',
     description: '',
     type: 'call',
+    task_type: 'call',
     scheduled_at: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString().slice(0, 16), // Default to 1 hour from now
     priority: 3, // Initialize as number
     lead_id: leadId || '',
@@ -105,6 +106,7 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
         title: '',
         description: '',
         type: 'call',
+        task_type: 'call',
         scheduled_at: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString().slice(0, 16),
         priority: 3,
         lead_id: leadId || '',

@@ -153,8 +153,8 @@ export default function DashboardLayout({ children }) {
       icon: <FileText className="w-5 h-5 text-gray-400" />,
     },
     {
-      href: "/dashboard/analytics",
-      label: "Analytics",
+      href: "/insights",
+      label: "Insights",
       icon: <BarChart3 className="w-5 h-5 text-gray-400" />,
     },
     {
