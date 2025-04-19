@@ -9,9 +9,9 @@ import { Home, User, Briefcase, FileText } from 'lucide-react'
 
 export default function Landing() {
   const navItems = [
-    { name: 'Home', url: '#', icon: Home },
-    { name: 'Features', url: '#', icon: User },
-    { name: 'Testimonials', url: '#', icon: Briefcase },
+    { name: 'Home', url: '#home', icon: Home },
+    { name: 'Features', url: '#features', icon: User },
+    { name: 'Testimonials', url: '#testimonials', icon: Briefcase },
   ]
   const router = useRouter()
   return (
@@ -19,29 +19,32 @@ export default function Landing() {
       {/* Header */}
       <NavBar items={navItems} />
 
-      {/* Hero Section */}
-      <HeroSection
-      title="see whats new in v1.1"
-      subtitle={{
-        regular: "Supercharge your sales ",
-        gradient: "with Prosparity AI",
-      }}
-      description="  Prosparity.AI combines advanced GenAI technologies to not only automate outreach but also intelligently classify, strengthen, and convert leads with unprecedented efficiency."
-      ctaText="Get Started"
-      ctaHref="/signup"
-      bottomImage={{
-        light: "https://www.launchuicomponents.com/app-light.png",
-        dark: "https://www.launchuicomponents.com/app-dark.png",
-      }}
-      gridOptions={{
-        angle: 65,
-        opacity: 0.4,
-        cellSize: 50,
-        lightLineColor: "#4a4a4a",
-        darkLineColor: "#2a2a2a",
-      }}
-    />
-      {/* Features Section - Now using the new component */}
+      {/* Hero Section with ID for navigation */}
+      <section id="home">
+        <HeroSection
+        title="see whats new in v1.1"
+        subtitle={{
+          regular: "Supercharge your sales ",
+          gradient: "with Prosparity AI",
+        }}
+        description="  Prosparity.AI combines advanced GenAI technologies to not only automate outreach but also intelligently classify, strengthen, and convert leads with unprecedented efficiency."
+        ctaText="Get Started"
+        ctaHref="/signup"
+        bottomImage={{
+          light: "https://www.launchuicomponents.com/app-light.png",
+          dark: "https://www.launchuicomponents.com/app-dark.png",
+        }}
+        gridOptions={{
+          angle: 65,
+          opacity: 0.4,
+          cellSize: 50,
+          lightLineColor: "#4a4a4a",
+          darkLineColor: "#2a2a2a",
+        }}
+      />
+      </section>
+
+      {/* Features Section - Now using the new component with ID for navigation */}
       <FeaturesSection />
 
       <section className="container mx-auto px-4 py-20 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -95,7 +98,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* Testimonials Section with ID for navigation */}
       <section id="testimonials" className="container mx-auto px-4 py-20">
         <h2 className="text-4xl font-bold text-center mb-16">Trusted by sales professionals</h2>
 
@@ -163,6 +166,7 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Rest of sections remain unchanged */}
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-3xl py-16 px-4">

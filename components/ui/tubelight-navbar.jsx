@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import Link from "next/link"
 import { cn } from "@/lib/utils"
 
 export function NavBar({
@@ -21,6 +20,20 @@ export function NavBar({
     return () => window.removeEventListener("resize", handleResize);
   }, [])
 
+  // Function to handle smooth scrolling
+  const handleSmoothScroll = (e, sectionId) => {
+    e.preventDefault();
+    
+    const section = document.getElementById(sectionId);
+    if (section) {
+      window.scrollTo({
+        top: section.offsetTop,
+        behavior: 'smooth'
+      });
+    }
+    setActiveTab(sectionId);
+  };
+
   return (
     (<div
       className={cn(
@@ -32,12 +45,14 @@ export function NavBar({
         {items.map((item) => {
           const Icon = item.icon
           const isActive = activeTab === item.name
+          // Extract section ID from the URL (removing the # symbol)
+          const sectionId = item.url.replace('#', '')
 
           return (
-            (<Link
+            (<a
               key={item.name}
               href={item.url}
-              onClick={() => setActiveTab(item.name)}
+              onClick={(e) => handleSmoothScroll(e, sectionId)}
               className={cn(
                 "relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors",
                 "text-foreground/80 hover:text-primary",
@@ -67,7 +82,7 @@ export function NavBar({
                   </div>
                 </motion.div>
               )}
-            </Link>)
+            </a>)
           );
         })}
       </div>
