@@ -4,25 +4,30 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
-import { Home, Users, Calendar, FileText, Settings, LogOut, Menu, X, Bell, BarChart3 } from "lucide-react"
+import { Home, Users, Calendar, FileText, Settings, LogOut, Menu, X, Bell, BarChart3, ChevronLeft, ChevronRight } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
-const NavItem = ({ href, icon, label, active }) => (
+const NavItem = ({ href, icon, label, active, collapsed }) => (
   <Link
     href={href}
-    className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+    className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-300 ${
       active ? "text-white bg-purple-700" : "text-gray-300 hover:bg-gray-800 hover:text-white"
-    }`}
+    } ${collapsed ? "justify-center w-12 mx-auto" : ""}`}
   >
-    {icon}
-    <span className="ml-3">{label}</span>
+    <div className={collapsed ? "mx-auto" : ""}>
+      {icon}
+    </div>
+    <span className={`ml-3 transition-all duration-300 ${collapsed ? "w-0 hidden" : "inline-block"}`}>
+      {label}
+    </span>
   </Link>
 )
 
 export default function DashboardLayout({ children }) {
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [companyId, setCompanyId] = useState(null)
@@ -232,13 +237,25 @@ export default function DashboardLayout({ children }) {
 
       {/* Desktop sidebar */}
       <div className="hidden lg:flex lg:flex-shrink-0">
-        <div className="flex flex-col w-64">
+        <div className={`flex flex-col transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'w-20' : 'w-64'}`}>
           <div className="flex flex-col h-0 flex-1 bg-gray-900">
-            <div className="flex items-center h-16 flex-shrink-0 px-4 border-b border-gray-800">
-              <h1 className="text-xl font-bold text-white">Prosparity.AI</h1>
+            <div className="flex items-center h-16 flex-shrink-0 px-4 border-b border-gray-800 justify-between">
+              <h1 className={`font-bold text-white transition-opacity duration-300 ${isSidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100 text-xl'}`}>
+                Prosparity.AI
+              </h1>
+              <button
+                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                className="p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800"
+              >
+                {isSidebarCollapsed ? (
+                  <ChevronRight className="h-5 w-5" />
+                ) : (
+                  <ChevronLeft className="h-5 w-5" />
+                )}
+              </button>
             </div>
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-              <div className="px-4 mb-6">
+              <div className={`px-4 mb-6 transition-opacity duration-300 ${isSidebarCollapsed ? 'opacity-0' : 'opacity-100'}`}>
                 <div className="flex items-center">
                   <Avatar className="h-10 w-10 rounded-full">
                     <AvatarImage src="/placeholder-user.jpg" alt="User" />
@@ -246,7 +263,7 @@ export default function DashboardLayout({ children }) {
                       {user.email?.charAt(0).toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="ml-3">
+                  <div className={`ml-3 transition-opacity duration-300 ${isSidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
                     <p className="text-sm font-medium text-white">{user.email?.split("@")[0] || "User"}</p>
                     <p className="text-xs text-gray-400">{user.email || "user@example.com"}</p>
                   </div>
@@ -260,6 +277,7 @@ export default function DashboardLayout({ children }) {
                     icon={item.icon}
                     label={item.label}
                     active={isActive(item.href)}
+                    collapsed={isSidebarCollapsed}
                   />
                 ))}
               </nav>
@@ -267,10 +285,12 @@ export default function DashboardLayout({ children }) {
             <div className="flex-shrink-0 flex border-t border-gray-800 p-4">
               <button
                 onClick={handleSignOut}
-                className="flex items-center px-4 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-800 hover:text-white w-full"
+                className={`flex items-center px-4 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-800 hover:text-white ${isSidebarCollapsed ? 'justify-center' : 'w-full'}`}
               >
-                <LogOut className="w-5 h-5 text-gray-400 mr-3" />
-                Sign out
+                <LogOut className="w-5 h-5 text-gray-400" />
+                <span className={`ml-3 transition-opacity duration-300 ${isSidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
+                  Sign out
+                </span>
               </button>
             </div>
           </div>
