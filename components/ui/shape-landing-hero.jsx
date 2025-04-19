@@ -2,6 +2,9 @@
 import { motion } from "framer-motion";
 import { Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 
 function ElegantShape({
@@ -75,6 +78,55 @@ function HeroGeometric({
                 ease: [0.25, 0.4, 0.25, 1],
             },
         }),
+    };
+    
+    const [user, setUser] = useState(null);
+    const router = useRouter();
+    
+    useEffect(() => {
+        // Check user authentication status
+        const checkUser = async () => {
+            const { data } = await supabase.auth.getSession();
+            setUser(data.session?.user || null);
+        };
+        
+        checkUser();
+    }, []);
+    
+    const handleGetStarted = (e) => {
+        e.preventDefault();
+        
+        if (user) {
+            // User is authenticated, check if they have a company
+            checkUserCompany(user.id);
+        } else {
+            // User is not authenticated, redirect to login
+            router.push('/auth/login');
+        }
+    };
+    
+    const checkUserCompany = async (userId) => {
+        try {
+            const { data: companies, error } = await supabase
+                .from('companies')
+                .select('id')
+                .eq('owner_id', userId)
+                .limit(1);
+            
+            if (error) throw error;
+            
+            if (companies && companies.length > 0) {
+                // User has a company, redirect to dashboard
+                router.push('/dashboard');
+            } else {
+                // User doesn't have a company, redirect to company registration
+                router.push('/auth/register-company');
+            }
+        } catch (error) {
+            console.error('Error checking user company:', error);
+            // If there's an error, redirect to dashboard anyway
+            router.push('/dashboard');
+        }
     };
 
     return (
@@ -151,6 +203,21 @@ function HeroGeometric({
                                 )}>
                             </span>
                         </h1>
+                    </motion.div>
+                    
+                    <motion.div 
+                        custom={2} 
+                        variants={fadeUpVariants} 
+                        initial="hidden" 
+                        animate="visible"
+                        className="mt-8"
+                    >
+                        <button 
+                            onClick={handleGetStarted}
+                            className="inline-block px-8 py-3 rounded-full bg-gradient-to-r from-indigo-500 to-rose-500 text-white font-medium hover:from-indigo-600 hover:to-rose-600 transition-all shadow-lg hover:shadow-xl"
+                        >
+                            Get Started
+                        </button>
                     </motion.div>
                 </div>
             </div>

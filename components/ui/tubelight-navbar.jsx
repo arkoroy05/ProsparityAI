@@ -2,8 +2,6 @@
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
-import Link from "next/link"
-import { supabase } from "@/lib/supabase"
 
 export function NavBar({
   items,
@@ -11,8 +9,6 @@ export function NavBar({
 }) {
   const [activeTab, setActiveTab] = useState(items[0].name)
   const [isMobile, setIsMobile] = useState(false)
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const handleResize = () => {
@@ -22,22 +18,6 @@ export function NavBar({
     handleResize()
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize);
-  }, [])
-
-  useEffect(() => {
-    // Check if user is already logged in
-    async function checkSession() {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        setUser(session?.user || null)
-      } catch (error) {
-        console.error("Error checking session:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    
-    checkSession()
   }, [])
 
   // Function to handle smooth scrolling
@@ -105,22 +85,6 @@ export function NavBar({
             </a>)
           );
         })}
-        
-        {/* Auth buttons */}
-        {!loading && !user && (
-          <>
-            <Link 
-              href="/auth/login"
-              className="relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors bg-white/10 hover:bg-white/20 text-white">
-              Login
-            </Link>
-            <Link 
-              href="/auth/register"
-              className="relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors bg-indigo-600 hover:bg-indigo-700 text-white">
-              Sign Up
-            </Link>
-          </>
-        )}
       </div>
     </div>)
   );

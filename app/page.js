@@ -1,5 +1,4 @@
 "use client"
-import { useState, useEffect } from "react"
 import Image from "next/image"
 import { ArrowRight, Box, Check, ChevronRight, Lock, Search, Settings, Sparkles } from "lucide-react"
 import { HeroGeometric } from "@/components/ui/shape-landing-hero"
@@ -7,33 +6,8 @@ import { GlowingEffect } from "@/components/glowCards"
 import { HeroSection } from "@/components/hero-section-dark"
 import { NavBar } from "@/components/ui/tubelight-navbar"
 import { Home, User, Briefcase, FileText } from 'lucide-react'
-import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
 
 export default function Landing() {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
-
-  useEffect(() => {
-    // Check if user is already logged in
-    async function checkSession() {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        setUser(session?.user || null)
-      } catch (error) {
-        console.error("Error checking session:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    
-    checkSession()
-  }, [])
-
-  // Determine where the Get Started button should link to
-  const getStartedHref = user ? "/dashboard" : "/auth/login"
-
   const navItems = [
     { name: 'Home', url: '#home', icon: Home },
     { name: 'Features', url: '#features', icon: User },
@@ -54,7 +28,7 @@ export default function Landing() {
         }}
         description="  Prosparity.AI combines advanced GenAI technologies to not only automate outreach but also intelligently classify, strengthen, and convert leads with unprecedented efficiency."
         ctaText="Get Started"
-        ctaHref={getStartedHref}
+        ctaHref="/dashboard"
         bottomImage={{
           light: "https://www.launchuicomponents.com/app-light.png",
           dark: "https://www.launchuicomponents.com/app-dark.png",

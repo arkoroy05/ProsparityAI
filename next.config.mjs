@@ -12,10 +12,6 @@ const nextConfig = {
     
     return config;
   },
-  // Ensure correct handling of both pages and app directory
-  experimental: {
-    appDocumentPreloading: true,
-  },
 };
 
 export default nextConfig;
