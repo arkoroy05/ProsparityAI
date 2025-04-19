@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { supabase } from '@/lib/supabase';
 import '../styles/globals.css';
 
-function MyApp({ Component, pageProps }) {
+export default function MyApp({ Component, pageProps }) {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -131,6 +131,4 @@ function MyApp({ Component, pageProps }) {
 
   // Render the page with its layout
   return getLayout(<Component {...enhancedPageProps} />);
-}
-
-export default MyApp; 
+} 
