@@ -72,19 +72,18 @@ export default function AuthLayout({ children }) {
         </div>
       </div>
       <div className="relative hidden w-0 flex-1 lg:block">
-        <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-black via-[#300] to-[#606]">
+        <div className="absolute inset-0 h-full w-full ">
+        <Image
+                src="/logo.png"
+                alt="AI Sales Assistant" 
+                fill
+                priority
+                className="object-contain opacity-90 "
+              />
           <div className="absolute inset-0 opacity-70 mix-blend-overlay bg-[radial-gradient(circle_at_center,_#b4f_0%,_transparent_50%)]"></div>
           <div className="absolute inset-0 flex items-center justify-center p-12">
-            <div className="max-w-2xl text-center text-[#e2b3ff]">
-              <div className="mb-8 flex justify-center">
-                <Image
-                  src="/globe"
-                  alt="AI Sales Assistant" 
-                  width={128}
-                  height={128}
-                  className="opacity-90 drop-shadow-[0_0_15px_rgba(187,68,255,0.5)]"
-                />
-              </div>
+            <div className="relative w-full max-w-2xl aspect-[16/9]">
+              
             </div>
           </div>
         </div>

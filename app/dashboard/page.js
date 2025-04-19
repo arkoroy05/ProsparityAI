@@ -3,16 +3,18 @@
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import AiInstructions from "@/components/dashboard/AiInstructions"
-import { Calendar, Users, FileText, BarChart3, ArrowRight, Download, Search } from "lucide-react"
+import { Calendar, Users, FileText, BarChart3, ArrowRight, Download, Search, DollarSign } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TextShimmer } from "@/components/ui/text-shimmer"
 
 export default function DashboardPage() {
+  const [showWelcomeMessage, setShowWelcomeMessage] = useState(true)
+  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [user, setUser] = useState(null)
   const [companyId, setCompanyId] = useState(null)
-  const [loading, setLoading] = useState(true)
   const [company, setCompany] = useState(null)
   const [dateRange, setDateRange] = useState("Jan 20, 2023 - Feb 09, 2023")
   const [activeTab, setActiveTab] = useState("overview")
@@ -77,16 +79,18 @@ export default function DashboardPage() {
   }
   
   return (
-    <div className="bg-black text-white min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
+    <div className="bg-black text-white min-h-screen relative">
+      {/* Add a subtle gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-pink-900/20 pointer-events-none"></div>
+      
+      <div className="max-w-7xl mx-auto relative">
+        {/* Header with glowing text effect */}
         <div className="flex justify-between items-center mb-8">
-          
           <TextShimmer
             duration={1.4}
-            className='text-6xl font-extralight [--base-color:theme(colors.purple.600)] [--base-gradient-color:theme(colors.pink.400)] dark:[--base-color:theme(colors.purple.700)] dark:[--base-gradient-color:theme(colors.pink.500)] [--text-color:theme(colors.white)] [--text-gradient-color:theme(colors.gray.900)] [--text-shadow:0_0_0.5rem_theme(colors.purple.600),0_0_1rem_theme(colors.purple.600),0_0_2rem_theme(colors.purple.600)] [--text-shadow-dark:0_0_0.5rem_theme(colors.purple.700),0_0_1rem_theme(colors.purple.700),0_0_2rem_theme(colors.purple.700)]'
+            className="text-6xl font-extralight bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent"
           >
-          Welcome back, {user.email?.split("@")[0] || "User"}
+            Welcome back, {user?.email?.split("@")[0] || "User"}
           </TextShimmer>
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -122,11 +126,11 @@ export default function DashboardPage() {
 
           <TabsContent value="overview" className="mt-6">
             {/* Stats Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <Card className="bg-gray-900 border-gray-800 shadow-lg">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <Card className="bg-gray-900/50 border-gray-800 shadow-lg hover:shadow-purple-500/10 transition-all">
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
                   <CardTitle className="text-sm font-medium text-gray-400">Total Revenue</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-gray-400" />
+                  <DollarSign className="h-4 w-4 text-purple-400" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">$45,231.89</div>
@@ -134,10 +138,10 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-gray-800 shadow-lg">
+              <Card className="bg-gray-900/50 border-gray-800 shadow-lg hover:shadow-pink-500/10 transition-all">
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
                   <CardTitle className="text-sm font-medium text-gray-400">Subscriptions</CardTitle>
-                  <Users className="h-4 w-4 text-gray-400" />
+                  <Users className="h-4 w-4 text-pink-400" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">+2,350</div>
@@ -145,10 +149,10 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-gray-800 shadow-lg">
+              <Card className="bg-gray-900/50 border-gray-800 shadow-lg hover:shadow-purple-500/10 transition-all">
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
                   <CardTitle className="text-sm font-medium text-gray-400">Sales</CardTitle>
-                  <FileText className="h-4 w-4 text-gray-400" />
+                  <FileText className="h-4 w-4 text-purple-400" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">+12,234</div>
@@ -156,10 +160,10 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-gray-800 shadow-lg">
+              <Card className="bg-gray-900/50 border-gray-800 shadow-lg hover:shadow-pink-500/10 transition-all">
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
                   <CardTitle className="text-sm font-medium text-gray-400">Active Now</CardTitle>
-                  <Users className="h-4 w-4 text-gray-400" />
+                  <Users className="h-4 w-4 text-pink-400" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">+573</div>
@@ -169,9 +173,11 @@ export default function DashboardPage() {
             </div>
 
             {/* AI Instructions Section */}
-            <Card className="bg-gray-900 border-gray-800 shadow-lg mb-8">
+            <Card className="bg-gray-900/50 border-gray-800 shadow-lg hover:shadow-purple-500/10 transition-all mb-8">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold">AI Agent Instructions</CardTitle>
+                <CardTitle className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+                  AI Agent Instructions
+                </CardTitle>
                 <CardDescription className="text-gray-400">
                   Customize how your AI sales agent interacts with leads
                 </CardDescription>
@@ -183,9 +189,11 @@ export default function DashboardPage() {
 
             {/* Quick Links */}
             <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+              <h2 className="text-xl font-semibold mb-4 bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+                Quick Actions
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="bg-gray-900 border-gray-800 shadow-lg hover:bg-gray-800 transition-all group">
+                <Card className="bg-gray-900/50 border-gray-800 shadow-lg hover:shadow-purple-500/10 transition-all group">
                   <CardHeader>
                     <CardTitle className="text-lg font-medium flex items-center">
                       <Users className="h-5 w-5 mr-2 text-purple-500" />
@@ -198,16 +206,16 @@ export default function DashboardPage() {
                   <CardFooter>
                     <Button variant="link" className="text-purple-500 p-0 group-hover:text-purple-400" asChild>
                       <a href="/dashboard/leads" className="flex items-center">
-                        Go to Leads <ArrowRight className="ml-2 h-4 w-4" />
+                        Go to Leads <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </a>
                     </Button>
                   </CardFooter>
                 </Card>
 
-                <Card className="bg-gray-900 border-gray-800 shadow-lg hover:bg-gray-800 transition-all group">
+                <Card className="bg-gray-900/50 border-gray-800 shadow-lg hover:shadow-pink-500/10 transition-all group">
                   <CardHeader>
                     <CardTitle className="text-lg font-medium flex items-center">
-                      <Calendar className="h-5 w-5 mr-2 text-purple-500" />
+                      <Calendar className="h-5 w-5 mr-2 text-pink-500" />
                       View Tasks
                     </CardTitle>
                   </CardHeader>
@@ -215,15 +223,15 @@ export default function DashboardPage() {
                     <p className="text-gray-400">Check your pending tasks and follow-ups.</p>
                   </CardContent>
                   <CardFooter>
-                    <Button variant="link" className="text-purple-500 p-0 group-hover:text-purple-400" asChild>
+                    <Button variant="link" className="text-pink-500 p-0 group-hover:text-pink-400" asChild>
                       <a href="/dashboard/tasks" className="flex items-center">
-                        Go to Tasks <ArrowRight className="ml-2 h-4 w-4" />
+                        Go to Tasks <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </a>
                     </Button>
                   </CardFooter>
                 </Card>
 
-                <Card className="bg-gray-900 border-gray-800 shadow-lg hover:bg-gray-800 transition-all group">
+                <Card className="bg-gray-900/50 border-gray-800 shadow-lg hover:shadow-purple-500/10 transition-all group">
                   <CardHeader>
                     <CardTitle className="text-lg font-medium flex items-center">
                       <FileText className="h-5 w-5 mr-2 text-purple-500" />
@@ -236,7 +244,7 @@ export default function DashboardPage() {
                   <CardFooter>
                     <Button variant="link" className="text-purple-500 p-0 group-hover:text-purple-400" asChild>
                       <a href="/dashboard/sales-scripts" className="flex items-center">
-                        Manage Scripts <ArrowRight className="ml-2 h-4 w-4" />
+                        View Scripts <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </a>
                     </Button>
                   </CardFooter>
@@ -260,4 +268,4 @@ export default function DashboardPage() {
       </div>
     </div>
   )
-} 
+}
