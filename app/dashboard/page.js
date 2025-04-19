@@ -15,7 +15,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [company, setCompany] = useState(null)
   const [dateRange, setDateRange] = useState("Jan 20, 2023 - Feb 09, 2023")
-
+  
   useEffect(() => {
     // Get current session
     const getSession = async () => {
@@ -41,16 +41,16 @@ export default function DashboardPage() {
   const getCompanyId = async (userId) => {
     try {
       const { data: companies, error } = await supabase.from("companies").select("*").eq("owner_id", userId).limit(1)
-
-      if (error) throw error
-
+        
+        if (error) throw error
+        
       if (companies && companies.length > 0) {
         setCompanyId(companies[0].id)
         setCompany(companies[0])
       }
 
       setLoading(false)
-    } catch (error) {
+      } catch (error) {
       console.error("Error getting company:", error)
       setLoading(false)
     }
@@ -74,7 +74,7 @@ export default function DashboardPage() {
       </div>
     )
   }
-
+  
   return (
     <div className="bg-black text-white min-h-screen">
       <div className="max-w-7xl mx-auto">
@@ -247,4 +247,4 @@ export default function DashboardPage() {
       </div>
     </div>
   )
-}
+} 
