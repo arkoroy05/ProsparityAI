@@ -1,7 +1,7 @@
 "use client"
 import Image from "next/image"
 import { ArrowRight, Box, Check, ChevronRight, Lock, Search, Settings, Sparkles } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { HeroGeometric } from "@/components/ui/shape-landing-hero"
 import { GlowingEffect } from "@/components/glowCards"
 import { HeroSection } from "@/components/hero-section-dark"
 import { NavBar } from "@/components/ui/tubelight-navbar"
@@ -13,9 +13,8 @@ export default function Landing() {
     { name: 'Features', url: '#features', icon: User },
     { name: 'Testimonials', url: '#testimonials', icon: Briefcase },
   ]
-  const router = useRouter()
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 to-gray-900 text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <NavBar items={navItems} />
 
@@ -147,94 +146,53 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="flex justify-center gap-8 flex-wrap">
-          <div className="bg-gray-800 p-4 rounded-md">
-            <div className="w-16 h-8 bg-gray-700"></div>
-          </div>
-          <div className="bg-gray-800 p-4 rounded-md">
-            <div className="w-16 h-8 bg-gray-700"></div>
-          </div>
-          <div className="bg-gray-800 p-4 rounded-md">
-            <div className="w-16 h-8 bg-gray-700"></div>
-          </div>
-          <div className="bg-gray-800 p-4 rounded-md">
-            <div className="w-16 h-8 bg-gray-700"></div>
-          </div>
-          <div className="bg-gray-800 p-4 rounded-md">
-            <div className="w-16 h-8 bg-gray-700"></div>
-          </div>
-        </div>
+       
       </section>
 
-      {/* Rest of sections remain unchanged */}
       {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-3xl py-16 px-4">
-          <div className="mx-auto mb-8">
-            <div className="bg-purple-600 rounded-md p-3 inline-block">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L20 7V17L12 22L4 17V7L12 2Z" fill="white" />
-              </svg>
-            </div>
-          </div>
-          <h2 className="text-4xl font-bold mb-8">Start with Prosparity.AI, today.</h2>
-          <div className="flex flex-wrap justify-center gap-4">
-            <button className="bg-purple-600 hover:bg-purple-700 text-white rounded-md px-6 py-3 flex items-center gap-2 transition-colors">
-              Sign up for free <ArrowRight className="w-4 h-4" />
-            </button>
-            <button className="bg-white text-gray-900 rounded-md px-6 py-3 flex items-center gap-2 transition-colors">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 9.5L12 17L22 9.5L12 2Z" fill="currentColor" />
-                <path
-                  d="M2 14.5L12 22L22 14.5"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Get the app
-            </button>
-          </div>
-        </div>
-      </section>
+      <HeroGeometric 
+            title1 = "Prosparity.AI" />
 
-      {/* Steps Section */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-gray-800 rounded-md flex items-center justify-center mx-auto mb-4">
-              <span className="text-xl font-bold">1</span>
-            </div>
-            <h3 className="font-semibold mb-2">Log in with your Prosparity.AI account</h3>
-            <p className="text-gray-400 text-sm">Quick and secure authentication</p>
-          </div>
+      {/* Footer Section */}
+<footer className="container mx-auto px-4 py-16 border-t border-gray-800">
+  <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-sm text-gray-400">
+    <div>
+      <h4 className="text-white font-semibold mb-4">Prosparity.AI</h4>
+      <p>
+        AI-powered sales automation to help you close deals faster and smarter.
+      </p>
+    </div>
+    <div>
+      <h4 className="text-white font-semibold mb-4">Company</h4>
+      <ul className="space-y-2">
+        <li><a href="#" className="hover:text-white transition-colors">About</a></li>
+        <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
+        <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 className="text-white font-semibold mb-4">Product</h4>
+      <ul className="space-y-2">
+        <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
+        <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
+        <li><a href="#" className="hover:text-white transition-colors">Docs</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 className="text-white font-semibold mb-4">Legal</h4>
+      <ul className="space-y-2">
+        <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
+        <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
 
-          <div className="text-center">
-            <div className="w-12 h-12 bg-gray-800 rounded-md flex items-center justify-center mx-auto mb-4">
-              <span className="text-xl font-bold">2</span>
-            </div>
-            <h3 className="font-semibold mb-2">Install our AI assistant app</h3>
-            <p className="text-gray-400 text-sm">and import your existing leads</p>
-          </div>
+{/* Bottom Bar */}
+<div className="text-center text-gray-600 text-xs py-4 border-t border-gray-800">
+  © {new Date().getFullYear()} Prosparity.AI — All rights reserved.
+</div>
 
-          <div className="text-center">
-            <div className="w-12 h-12 bg-gray-800 rounded-md flex items-center justify-center mx-auto mb-4">
-              <span className="text-xl font-bold">3</span>
-            </div>
-            <h3 className="font-semibold mb-2">Browse your leads</h3>
-            <p className="text-gray-400 text-sm">and start working on conversions</p>
-          </div>
-
-          <div className="text-center">
-            <div className="w-12 h-12 bg-gray-800 rounded-md flex items-center justify-center mx-auto mb-4">
-              <span className="text-xl font-bold">4</span>
-            </div>
-            <h3 className="font-semibold mb-2">Work in real-time with your team</h3>
-            <p className="text-gray-400 text-sm">on your sales projects</p>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
