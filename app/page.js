@@ -1,94 +1,50 @@
 "use client"
 import Image from "next/image"
 import { ArrowRight, Box, Check, ChevronRight, Lock, Search, Settings, Sparkles } from "lucide-react"
-import { HoverBorderGradient } from "@/components/ui/hover-border"
-import AnimatedGradientText from "@/components/ui/gradient-text"
-import { TextEffect } from "@/components/motion-primitives/text-effect"
-import SlideArrowButton from "@/components/getStarted"
 import { useRouter } from "next/navigation"
 import { GlowingEffect } from "@/components/glowCards"
+import { HeroSection } from "@/components/hero-section-dark"
+import { NavBar } from "@/components/ui/tubelight-navbar"
+import { Home, User, Briefcase, FileText } from 'lucide-react'
 
-export default function Home() {
+export default function Landing() {
+  const navItems = [
+    { name: 'Home', url: '#home', icon: Home },
+    { name: 'Features', url: '#features', icon: User },
+    { name: 'Testimonials', url: '#testimonials', icon: Briefcase },
+  ]
   const router = useRouter()
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 to-gray-900 text-white">
       {/* Header */}
-      <header className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="bg-purple-600 rounded-md p-2">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L20 7V17L12 22L4 17V7L12 2Z" fill="white" />
-            </svg>
-          </div>
-          <span className="text-xl font-bold">Prosparity.AI</span>
-        </div>
-        <nav className="hidden md:flex items-center gap-8">
-          <a href="#features" className="hover:text-purple-400 transition-colors">
-            Features
-          </a>
-          <a href="#testimonials" className="hover:text-purple-400 transition-colors">
-            Testimonials
-          </a>
-          <a href="#pricing" className="hover:text-purple-400 transition-colors">
-            Pricing
-          </a>
-          <a href="#contact" className="hover:text-purple-400 transition-colors">
-            Contact
-          </a>
-        </nav>
-        <div className="flex items-center gap-4">
-          <button className="px-4 py-2 text-sm hover:text-purple-400 transition-colors">Log in</button>
-          <button className="px-4 py-2 text-sm bg-purple-600 rounded-md hover:bg-purple-700 transition-colors">
-            Sign up free
-          </button>
-        </div>
-      </header>
+      <NavBar items={navItems} />
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-16 text-center">
-        <div className="inline-flex items-centerpx-4 py-1 mb-6">
-        <HoverBorderGradient
-         containerClassName="rounded-full"
-         as="button"
-         className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2">
-          <AnimatedGradientText className="text-sm">
-            see whats new in v1.1
-          </AnimatedGradientText>
-        </HoverBorderGradient>
-        </div>
-        <TextEffect preset='fade-in-blur' speedReveal={1.1} speedSegment={0.3} as="h1" className="text-5xl md:text-8xl font-bold mb-6">
-          Supercharged
-        </TextEffect>
-        <TextEffect per='char' preset='fade' as="h1" className="text-5xl md:text-8xl font-bold mb-6">
-        Sales experience
-        </TextEffect>
-        <p className="text-gray-400 max-w-2xl mx-auto mb-10">
-        Prosparity.AI combines advanced GenAI technologies to not only automate outreach but also intelligently classify, strengthen, and convert leads with unprecedented efficiency.
-        </p>
-        
-        <SlideArrowButton
-        primaryColor="#000"
-        text="Get Started"
-        onClick={() => router.push('/dashboard')}
-        />
-
-        {/* Dashboard Preview */}
-        <div className="mt-16 relative">
-          <div className="rounded-lg p-10 shadow-xl ">
-            <Image
-              src="/sample.png"
-              alt="App Screenshot"
-              className="rounded-md"
-              layout="responsive"
-              width={5200}     
-              height={1800}  
-              objectFit="cover"
-            />
-          </div>
-        </div>
+      {/* Hero Section with ID for navigation */}
+      <section id="home">
+        <HeroSection
+        title="see whats new in v1.1"
+        subtitle={{
+          regular: "Supercharge your sales ",
+          gradient: "with Prosparity AI",
+        }}
+        description="  Prosparity.AI combines advanced GenAI technologies to not only automate outreach but also intelligently classify, strengthen, and convert leads with unprecedented efficiency."
+        ctaText="Get Started"
+        ctaHref="/signup"
+        bottomImage={{
+          light: "https://www.launchuicomponents.com/app-light.png",
+          dark: "https://www.launchuicomponents.com/app-dark.png",
+        }}
+        gridOptions={{
+          angle: 65,
+          opacity: 0.4,
+          cellSize: 50,
+          lightLineColor: "#4a4a4a",
+          darkLineColor: "#2a2a2a",
+        }}
+      />
       </section>
 
-      {/* Features Section - Now using the new component */}
+      {/* Features Section - Now using the new component with ID for navigation */}
       <FeaturesSection />
 
       <section className="container mx-auto px-4 py-20 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -142,7 +98,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* Testimonials Section with ID for navigation */}
       <section id="testimonials" className="container mx-auto px-4 py-20">
         <h2 className="text-4xl font-bold text-center mb-16">Trusted by sales professionals</h2>
 
@@ -210,6 +166,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Rest of sections remain unchanged */}
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-3xl py-16 px-4">
