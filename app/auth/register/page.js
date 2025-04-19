@@ -77,7 +77,7 @@ export default function RegisterPage() {
   return (
     <>
       <div className="mt-8">
-        <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Create a new account</h2>
+        <h2 className="mt-6 text-3xl font-extrabold text-white">Create a new account</h2>
         <p className="mt-2 text-sm text-gray-600">
           Or{' '}
           <Link href="/auth/login" className="font-medium text-indigo-600 hover:text-indigo-500">
@@ -105,7 +105,7 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="fullName" className="block text-sm font-medium text-white">
                 Full Name
               </label>
               <div className="mt-1">
@@ -123,7 +123,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-white">
                 Email address
               </label>
               <div className="mt-1">
@@ -141,7 +141,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-white">
                 Password
               </label>
               <div className="mt-1">
@@ -159,7 +159,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-white">
                 Confirm Password
               </label>
               <div className="mt-1">

@@ -51,8 +51,8 @@ export default function LoginPage() {
   return (
     <>
       <div className="mt-8">
-        <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Sign in to your account</h2>
-        <p className="mt-2 text-sm text-gray-600">
+        <h2 className="mt-6 text-3xl font-extrabold text-white">Sign in to your account</h2>
+        <p className="mt-2 text-sm text-white">
           Or{' '}
           <Link href="/auth/register" className="font-medium text-indigo-600 hover:text-indigo-500">
             create a new account
@@ -79,7 +79,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-white">
                 Email address
               </label>
               <div className="mt-1">
@@ -97,7 +97,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-white">
                 Password
               </label>
               <div className="mt-1">
@@ -122,7 +122,7 @@ export default function LoginPage() {
                   type="checkbox"
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-white">
                   Remember me
                 </label>
               </div>

@@ -136,8 +136,8 @@ export default function RegisterCompanyPage() {
 
   return (
     <div>
-      <h2 className="text-3xl font-bold mb-6">Register Your Company</h2>
-      <p className="text-gray-600 mb-8">
+      <h2 className="text-3xl font-bold mb-6 text-white">Register Your Company</h2>
+      <p className=" mb-8 text-white">
         Set up your company profile to get started with Prosparity.AI
       </p>
 
@@ -149,7 +149,7 @@ export default function RegisterCompanyPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="companyName" className="block text-sm font-medium text-white mb-1">
             Company Name *
           </label>
           <input
@@ -164,7 +164,7 @@ export default function RegisterCompanyPage() {
         </div>
 
         <div>
-          <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="industry" className="block text-sm font-medium text-white mb-1">
             Industry
           </label>
           <select
@@ -183,7 +183,7 @@ export default function RegisterCompanyPage() {
         </div>
 
         <div>
-          <label htmlFor="companySize" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="companySize" className="block text-sm font-medium text-white mb-1">
             Company Size
           </label>
           <select
@@ -202,7 +202,7 @@ export default function RegisterCompanyPage() {
         </div>
 
         <div>
-          <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="website" className="block text-sm font-medium text-white mb-1">
             Website (optional)
           </label>
           <input
