@@ -28,7 +28,7 @@ export default function Landing() {
         }}
         description="  Prosparity.AI combines advanced GenAI technologies to not only automate outreach but also intelligently classify, strengthen, and convert leads with unprecedented efficiency."
         ctaText="Get Started"
-        ctaHref="/signup"
+        ctaHref="/dashboard"
         bottomImage={{
           light: "https://www.launchuicomponents.com/app-light.png",
           dark: "https://www.launchuicomponents.com/app-dark.png",
