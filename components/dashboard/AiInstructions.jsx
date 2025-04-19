@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Save, Sparkles } from "lucide-react";
+import { ShimmerButton } from '../ui/shimmer-button';
 
 const AiInstructions = ({ companyId, initialInstructions = '' }) => {
   const [instructions, setInstructions] = useState(initialInstructions);
@@ -98,24 +99,19 @@ const AiInstructions = ({ companyId, initialInstructions = '' }) => {
 
       <TabsContent value="edit" className="mt-4">
         <div className="flex justify-between mb-4">
-          <Button
-            variant="outline"
-            className="border-gray-700 text-gray-300 hover:bg-gray-800"
-            onClick={generateInstructions}
-            disabled={generating}
-          >
-            <Sparkles className="mr-2 h-4 w-4" />
-            {generating ? "Generating..." : "Generate with AI"}
-          </Button>
+        <ShimmerButton onClick={generateInstructions} className="shadow-2xl bg-purple-600 hover:bg-purple-700 text-white">
+        <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
+          Generate Using AI
+        </span>
+      </ShimmerButton>
 
-          <Button 
-            onClick={handleSave} 
-            disabled={saving}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            <Save className="mr-2 h-4 w-4" />
-            {saving ? "Saving..." : "Save Instructions"}
-          </Button>
+
+          <ShimmerButton onClick={handleSave} disabled={saving} className="shadow-2xl bg-purple-600 hover:bg-purple-700 text-white">
+            <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
+              {saving ? "Saving..." : "Save Instructions"}
+            </span>
+          </ShimmerButton>
+          
         </div>
 
         {error && (
