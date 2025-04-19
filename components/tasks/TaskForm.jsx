@@ -96,11 +96,11 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
   };
 
   return (
-    <div className="p-4 bg-gray-50 rounded-md">
-      <h3 className="mb-4 text-lg font-medium text-gray-900">Create New Task</h3>
+    <div className="p-6 bg-gray-900/50 rounded-lg border border-gray-800 shadow-lg">
+      <h3 className="mb-4 text-lg font-medium bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-transparent bg-clip-text">Create New Task</h3>
       
       {error && (
-        <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-md">
+        <div className="p-4 mb-4 text-sm text-red-400 bg-red-900/30 rounded-md border border-red-500/30">
           {error}
         </div>
       )}
@@ -108,7 +108,7 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-300">
               Task Title *
             </label>
             <input
@@ -118,13 +118,13 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
               required
               value={formData.title}
               onChange={handleChange}
-              className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
               placeholder="Follow up call"
             />
           </div>
           
           <div>
-            <label htmlFor="task_type" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="task_type" className="block text-sm font-medium text-gray-300">
               Task Type *
             </label>
             <select
@@ -133,7 +133,7 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
               required
               value={formData.task_type}
               onChange={handleChange}
-              className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
             >
               <option value="call">Call</option>
               <option value="email">Email</option>
@@ -145,7 +145,7 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
           
           {!leadId && (
             <div>
-              <label htmlFor="lead_id" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="lead_id" className="block text-sm font-medium text-gray-300">
                 Lead *
               </label>
               <select
@@ -155,7 +155,7 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
                 value={formData.lead_id}
                 onChange={handleChange}
                 disabled={fetchingLeads}
-                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 disabled:bg-gray-800/30 disabled:border-gray-700/50"
               >
                 <option value="">Select a lead</option>
                 {leads.map((lead) => (
@@ -171,7 +171,7 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
           )}
           
           <div>
-            <label htmlFor="scheduled_at" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="scheduled_at" className="block text-sm font-medium text-gray-300">
               Schedule For *
             </label>
             <input
@@ -181,12 +181,12 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
               required
               value={formData.scheduled_at}
               onChange={handleChange}
-              className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
             />
           </div>
           
           <div>
-            <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="priority" className="block text-sm font-medium text-gray-300">
               Priority
             </label>
             <select
@@ -194,7 +194,7 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
               name="priority"
               value={formData.priority}
               onChange={handleChange}
-              className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
             >
               <option value={1}>Low</option>
               <option value={2}>Medium-Low</option>
@@ -206,7 +206,7 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
         </div>
         
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="description" className="block text-sm font-medium text-gray-300">
             Description
           </label>
           <textarea
@@ -215,13 +215,13 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
             rows={2}
             value={formData.description}
             onChange={handleChange}
-            className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
             placeholder="Details about the task..."
           />
         </div>
         
         <div>
-          <label htmlFor="ai_instructions" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="ai_instructions" className="block text-sm font-medium text-gray-300">
             AI Instructions
           </label>
           <textarea
@@ -230,7 +230,7 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
             rows={3}
             value={formData.ai_instructions}
             onChange={handleChange}
-            className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
             placeholder="Special instructions for the AI agent..."
           />
           <p className="mt-1 text-xs text-gray-500">
@@ -243,7 +243,7 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800/80 border border-gray-700 rounded-md shadow-sm hover:bg-gray-800/90 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors duration-200"
             >
               Cancel
             </button>
@@ -252,7 +252,7 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
           <button
             type="submit"
             disabled={loading || (fetchingLeads && !leadId)}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300"
+            className="px-4 py-2 text-sm font-medium text-white bg-purple-600/80 border border-purple-500/30 rounded-md shadow-sm hover:bg-purple-600/90 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:bg-purple-600/30 disabled:border-purple-500/20 transition-colors duration-200"
           >
             {loading ? 'Creating...' : 'Create Task'}
           </button>
@@ -262,4 +262,4 @@ const TaskForm = ({ companyId, userId, onSuccess, onCancel, leadId }) => {
   );
 };
 
-export default TaskForm; 
+export default TaskForm;

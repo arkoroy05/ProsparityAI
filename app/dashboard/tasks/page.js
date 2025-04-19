@@ -66,24 +66,24 @@ export default function TasksPage() {
   ];
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full">Loading...</div>;
+    return <div className="flex items-center justify-center h-full text-white">Loading...</div>;
   }
 
   if (!user || !companyId) {
-    return <div className="flex items-center justify-center h-full">Please log in to view this page</div>;
+    return <div className="flex items-center justify-center h-full text-white">Please log in to view this page</div>;
   }
 
   return (
-    <div>
+    <div className="bg-gray-900 rounded-lg p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Tasks</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-transparent bg-clip-text">Tasks</h1>
+        <p className="mt-1 text-sm text-gray-400">
           Manage your tasks and follow-ups.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 border-b border-gray-200">
+      <div className="mb-6 border-b border-gray-800">
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
           {tabs.map((tab) => (
             <button
@@ -91,9 +91,9 @@ export default function TasksPage() {
               onClick={() => setSelectedTab(tab.id)}
               className={`${
                 selectedTab === tab.id
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                  ? 'border-purple-500 text-purple-400'
+                  : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-700'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200`}
             >
               {tab.label}
             </button>
@@ -102,21 +102,23 @@ export default function TasksPage() {
       </div>
 
       {/* Tab content */}
-      {selectedTab === 'list' && (
-        <TaskList 
-          key={refreshKey} 
-          companyId={companyId} 
-          userId={user?.id} 
-        />
-      )}
+      <div className="bg-gray-900">
+        {selectedTab === 'list' && (
+          <TaskList 
+            key={refreshKey} 
+            companyId={companyId} 
+            userId={user?.id} 
+          />
+        )}
 
-      {selectedTab === 'add' && (
-        <TaskForm 
-          companyId={companyId} 
-          userId={user?.id} 
-          onSuccess={handleTaskAdded} 
-        />
-      )}
+        {selectedTab === 'add' && (
+          <TaskForm 
+            companyId={companyId} 
+            userId={user?.id} 
+            onSuccess={handleTaskAdded} 
+          />
+        )}
+      </div>
     </div>
   );
-} 
+}

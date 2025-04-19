@@ -132,11 +132,11 @@ const LeadDetails = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="relative w-full max-w-3xl p-6 mx-4 bg-white rounded-lg shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+      <div className="relative w-full max-w-3xl p-6 mx-4 rounded-lg bg-gray-900 shadow-xl border border-gray-800">
         <button
           onClick={onClose}
-          className="absolute text-gray-400 top-4 right-4 hover:text-gray-600"
+          className="absolute text-gray-500 top-4 right-4 hover:text-gray-300 transition-colors"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -144,13 +144,13 @@ const LeadDetails = ({
         </button>
         
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Lead Details</h2>
+          <h2 className="text-xl font-bold text-white">Lead Details</h2>
           
           <div className="flex space-x-2">
             {!isEditing ? (
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-3 py-1 text-sm font-medium text-indigo-700 bg-indigo-100 rounded-md hover:bg-indigo-200"
+                className="px-3 py-1 text-sm font-medium text-purple-300 bg-purple-900/30 rounded-md border border-purple-700/50 hover:bg-purple-900/50 transition-colors"
               >
                 Edit
               </button>
@@ -158,13 +158,13 @@ const LeadDetails = ({
               <>
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="px-3 py-1 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                  className="px-3 py-1 text-sm font-medium text-gray-300 bg-gray-800 rounded-md border border-gray-700 hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-3 py-1 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+                  className="px-3 py-1 text-sm font-medium text-white bg-purple-600/80 rounded-md border border-purple-500/30 hover:bg-purple-600/90 transition-colors"
                 >
                   Save
                 </button>
@@ -175,12 +175,12 @@ const LeadDetails = ({
         
         <div className="grid grid-cols-1 gap-6 mb-6 md:grid-cols-2">
           <div>
-            <h3 className="mb-3 text-lg font-medium text-gray-900">Basic Information</h3>
+            <h3 className="mb-3 text-lg font-medium text-white">Basic Information</h3>
             
             {isEditing ? (
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-300">
                     Full Name
                   </label>
                   <input
@@ -189,12 +189,12 @@ const LeadDetails = ({
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-300">
                     Email
                   </label>
                   <input
@@ -203,12 +203,12 @@ const LeadDetails = ({
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-300">
                     Phone
                   </label>
                   <input
@@ -217,12 +217,12 @@ const LeadDetails = ({
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="company_name" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="company_name" className="block text-sm font-medium text-gray-300">
                     Company
                   </label>
                   <input
@@ -231,12 +231,12 @@ const LeadDetails = ({
                     name="company_name"
                     value={formData.company_name}
                     onChange={handleInputChange}
-                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="designation" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="designation" className="block text-sm font-medium text-gray-300">
                     Job Title
                   </label>
                   <input
@@ -245,49 +245,56 @@ const LeadDetails = ({
                     name="designation"
                     value={formData.designation}
                     onChange={handleInputChange}
-                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   />
                 </div>
               </div>
             ) : (
               <div className="space-y-3">
                 <div>
-                  <h4 className="text-xs font-medium text-gray-500">Full Name</h4>
-                  <p className="text-sm text-gray-900">{lead.name}</p>
+                  <h4 className="text-xs font-medium text-gray-400">Full Name</h4>
+                  <p className="text-sm text-gray-300">{lead.name}</p>
                 </div>
                 
                 <div>
-                  <h4 className="text-xs font-medium text-gray-500">Email</h4>
-                  <p className="text-sm text-gray-900">{lead.email || '-'}</p>
+                  <h4 className="text-xs font-medium text-gray-400">Email</h4>
+                  <p className="text-sm text-gray-300">{lead.email || '-'}</p>
                 </div>
                 
                 <div>
-                  <h4 className="text-xs font-medium text-gray-500">Phone</h4>
-                  <p className="text-sm text-gray-900">{lead.phone || '-'}</p>
+                  <h4 className="text-xs font-medium text-gray-400">Phone</h4>
+                  <p className="text-sm text-gray-300">{lead.phone || '-'}</p>
                 </div>
                 
                 <div>
-                  <h4 className="text-xs font-medium text-gray-500">Company</h4>
-                  <p className="text-sm text-gray-900">{lead.company_name || '-'}</p>
+                  <h4 className="text-xs font-medium text-gray-400">Company</h4>
+                  <p className="text-sm text-gray-300">{lead.company_name || '-'}</p>
                 </div>
                 
                 <div>
-                  <h4 className="text-xs font-medium text-gray-500">Job Title</h4>
-                  <p className="text-sm text-gray-900">{lead.designation || '-'}</p>
+                  <h4 className="text-xs font-medium text-gray-400">Job Title</h4>
+                  <p className="text-sm text-gray-300">{lead.designation || '-'}</p>
                 </div>
               </div>
             )}
           </div>
           
           <div>
-            <h3 className="mb-3 text-lg font-medium text-gray-900">Status & Scoring</h3>
+            <h3 className="mb-3 text-lg font-medium text-white">Status & Scoring</h3>
             
-            <div className="p-4 mb-4 bg-gray-50 rounded-md">
+            <div className="p-4 mb-4 rounded-md bg-gray-800/50 border border-gray-700">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h4 className="text-xs font-medium text-gray-500">Status</h4>
+                  <h4 className="text-xs font-medium text-gray-400">Status</h4>
                   <div className="mt-1">
-                    <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${statusColors[lead.status] || 'bg-gray-100'}`}>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      lead.status === 'new' ? 'bg-blue-900/50 text-blue-300 border border-blue-700/50' :
+                      lead.status === 'qualified' ? 'bg-green-900/50 text-green-300 border border-green-700/50' :
+                      lead.status === 'unqualified' ? 'bg-gray-800 text-gray-300 border border-gray-700' :
+                      lead.status === 'contacted' ? 'bg-yellow-900/50 text-yellow-300 border border-yellow-700/50' :
+                      lead.status === 'converted' ? 'bg-purple-900/50 text-purple-300 border border-purple-700/50' :
+                      'bg-red-900/50 text-red-300 border border-red-700/50'
+                    }`}>
                       {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
                     </span>
                   </div>
@@ -297,7 +304,7 @@ const LeadDetails = ({
                   <select
                     value={lead.status}
                     onChange={(e) => onStatusChange(lead.id, e.target.value)}
-                    className="block px-3 py-1 text-sm border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="px-3 py-1 text-sm text-gray-300 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   >
                     <option value="new">New</option>
                     <option value="qualified">Qualified</option>
@@ -311,14 +318,14 @@ const LeadDetails = ({
               
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-xs font-medium text-gray-500">Lead Score</h4>
+                  <h4 className="text-xs font-medium text-gray-400">Lead Score</h4>
                   {lead.score !== null && lead.score !== undefined ? (
                     <div className="mt-1">
                       <span 
                         className={`inline-block px-3 py-1 text-sm font-medium rounded ${
-                          lead.score >= 70 ? 'bg-green-100 text-green-800' : 
-                          lead.score <= 30 ? 'bg-red-100 text-red-800' : 
-                          'bg-yellow-100 text-yellow-800'
+                          lead.score >= 70 ? 'bg-green-900/50 text-green-300 border border-green-700/50' : 
+                          lead.score <= 30 ? 'bg-red-900/50 text-red-300 border border-red-700/50' : 
+                          'bg-yellow-900/50 text-yellow-300 border border-yellow-700/50'
                         }`}
                       >
                         {lead.score}/100
@@ -332,7 +339,7 @@ const LeadDetails = ({
                 <div>
                   <button
                     onClick={() => onScoreUpdate(lead.id)}
-                    className="px-3 py-1 text-sm font-medium text-indigo-700 bg-indigo-100 rounded-md hover:bg-indigo-200"
+                    className="px-3 py-1 text-sm font-medium text-purple-300 bg-purple-900/30 rounded-md border border-purple-700/50 hover:bg-purple-900/50 transition-colors"
                   >
                     {lead.score !== null && lead.score !== undefined ? 'Rescore' : 'Score Now'}
                   </button>
@@ -341,8 +348,8 @@ const LeadDetails = ({
               
               {lead.classification && (
                 <div className="mt-3">
-                  <h4 className="text-xs font-medium text-gray-500">Classification</h4>
-                  <p className="mt-1 text-sm font-medium capitalize text-gray-700">
+                  <h4 className="text-xs font-medium text-gray-400">Classification</h4>
+                  <p className="mt-1 text-sm font-medium capitalize text-gray-300">
                     {lead.classification}
                   </p>
                 </div>
@@ -350,7 +357,7 @@ const LeadDetails = ({
             </div>
             
             <div>
-              <h4 className="mb-2 text-sm font-medium text-gray-700">Notes</h4>
+              <h4 className="mb-2 text-sm font-medium text-gray-300">Notes</h4>
               {isEditing ? (
                 <textarea
                   id="notes"
@@ -358,11 +365,11 @@ const LeadDetails = ({
                   rows={4}
                   value={formData.notes}
                   onChange={handleInputChange}
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   placeholder="Add notes about this lead..."
                 />
               ) : (
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-400">
                   {lead.notes || 'No notes added yet.'}
                 </p>
               )}
@@ -370,13 +377,13 @@ const LeadDetails = ({
           </div>
         </div>
         
-        <div className="pt-4 mt-6 border-t border-gray-200">
+        <div className="pt-4 mt-6 border-t border-gray-800">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Tasks</h3>
+            <h3 className="text-lg font-medium text-white">Tasks</h3>
             
             <button
               onClick={() => setShowNewTaskForm(!showNewTaskForm)}
-              className="flex items-center px-3 py-1 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+              className="flex items-center px-3 py-1 text-sm font-medium text-white bg-purple-600/80 rounded-md border border-purple-500/30 hover:bg-purple-600/90 transition-colors"
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -386,10 +393,10 @@ const LeadDetails = ({
           </div>
           
           {showNewTaskForm && (
-            <form onSubmit={handleCreateTask} className="p-4 mb-4 bg-gray-50 rounded-md">
+            <form onSubmit={handleCreateTask} className="p-4 mb-4 rounded-md bg-gray-800/50 border border-gray-700">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="title" className="block text-sm font-medium text-gray-300">
                     Task Title *
                   </label>
                   <input
@@ -399,13 +406,13 @@ const LeadDetails = ({
                     required
                     value={newTaskData.title}
                     onChange={handleTaskInputChange}
-                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                     placeholder="Follow up call"
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="task_type" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="task_type" className="block text-sm font-medium text-gray-300">
                     Task Type *
                   </label>
                   <select
@@ -414,7 +421,7 @@ const LeadDetails = ({
                     required
                     value={newTaskData.task_type}
                     onChange={handleTaskInputChange}
-                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   >
                     <option value="call">Call</option>
                     <option value="email">Email</option>
@@ -425,7 +432,7 @@ const LeadDetails = ({
                 </div>
                 
                 <div>
-                  <label htmlFor="scheduled_at" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="scheduled_at" className="block text-sm font-medium text-gray-300">
                     Schedule For *
                   </label>
                   <input
@@ -435,12 +442,12 @@ const LeadDetails = ({
                     required
                     value={newTaskData.scheduled_at}
                     onChange={handleTaskInputChange}
-                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="priority" className="block text-sm font-medium text-gray-300">
                     Priority
                   </label>
                   <select
@@ -448,7 +455,7 @@ const LeadDetails = ({
                     name="priority"
                     value={newTaskData.priority}
                     onChange={handleTaskInputChange}
-                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   >
                     <option value={1}>Low</option>
                     <option value={2}>Medium-Low</option>
@@ -460,7 +467,7 @@ const LeadDetails = ({
               </div>
               
               <div className="mt-4">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-300">
                   Description
                 </label>
                 <textarea
@@ -469,13 +476,13 @@ const LeadDetails = ({
                   rows={2}
                   value={newTaskData.description}
                   onChange={handleTaskInputChange}
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   placeholder="Details about the task..."
                 />
               </div>
               
               <div className="mt-4">
-                <label htmlFor="ai_instructions" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="ai_instructions" className="block text-sm font-medium text-gray-300">
                   AI Instructions
                 </label>
                 <textarea
@@ -484,7 +491,7 @@ const LeadDetails = ({
                   rows={2}
                   value={newTaskData.ai_instructions}
                   onChange={handleTaskInputChange}
-                  className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="block w-full px-3 py-2 mt-1 text-gray-300 bg-gray-800/50 border border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
                   placeholder="Special instructions for the AI agent..."
                 />
               </div>
@@ -493,7 +500,7 @@ const LeadDetails = ({
                 <button
                   type="submit"
                   disabled={savingTask}
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600/80 rounded-md border border-purple-500/30 shadow-sm hover:bg-purple-600/90 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-colors"
                 >
                   {savingTask ? 'Creating...' : 'Create Task'}
                 </button>
@@ -511,50 +518,50 @@ const LeadDetails = ({
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-gray-800">
+                <thead className="bg-gray-800/50">
                   <tr>
-                    <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                    <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-400 uppercase">
                       Title
                     </th>
-                    <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                    <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-400 uppercase">
                       Type
                     </th>
-                    <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                    <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-400 uppercase">
                       Scheduled
                     </th>
-                    <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                    <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-400 uppercase">
                       Status
                     </th>
-                    <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                    <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-left text-gray-400 uppercase">
                       Priority
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-gray-900/50 divide-y divide-gray-800">
                   {tasks.map((task) => (
                     <tr key={task.id}>
-                      <td className="px-3 py-2 text-xs text-gray-900 whitespace-nowrap">
+                      <td className="px-3 py-2 text-xs text-gray-300 whitespace-nowrap">
                         {task.title}
                       </td>
-                      <td className="px-3 py-2 text-xs capitalize text-gray-900 whitespace-nowrap">
+                      <td className="px-3 py-2 text-xs capitalize text-gray-300 whitespace-nowrap">
                         {task.task_type}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-900 whitespace-nowrap">
+                      <td className="px-3 py-2 text-xs text-gray-300 whitespace-nowrap">
                         {new Date(task.scheduled_at).toLocaleString()}
                       </td>
-                      <td className="px-3 py-2 text-xs capitalize text-gray-900 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full
-                          ${task.status === 'pending' ? 'bg-blue-100 text-blue-800' :
-                            task.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
-                            task.status === 'completed' ? 'bg-green-100 text-green-800' :
-                            task.status === 'failed' ? 'bg-red-100 text-red-800' :
-                            'bg-gray-100 text-gray-800'}`}
-                        >
+                      <td className="px-3 py-2 text-xs capitalize whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          task.status === 'pending' ? 'bg-blue-900/50 text-blue-300 border border-blue-700/50' :
+                          task.status === 'in_progress' ? 'bg-yellow-900/50 text-yellow-300 border border-yellow-700/50' :
+                          task.status === 'completed' ? 'bg-green-900/50 text-green-300 border border-green-700/50' :
+                          task.status === 'failed' ? 'bg-red-900/50 text-red-300 border border-red-700/50' :
+                          'bg-gray-800 text-gray-300 border border-gray-700'
+                        }`}>
                           {task.status.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-900 whitespace-nowrap">
+                      <td className="px-3 py-2 text-xs text-gray-300 whitespace-nowrap">
                         {task.priority === 5 ? 'High' :
                           task.priority === 4 ? 'Medium-High' :
                           task.priority === 3 ? 'Medium' :
@@ -573,4 +580,4 @@ const LeadDetails = ({
   );
 };
 
-export default LeadDetails; 
+export default LeadDetails;
