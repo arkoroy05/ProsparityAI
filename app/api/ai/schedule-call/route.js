@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { aiAgent } from '@/lib/ai-agent-instance';
+import { aiAgent } from '@/lib/ai-agent';
 
 export async function POST(request) {
   try {
