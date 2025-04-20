@@ -29,10 +29,6 @@ export default function Landing() {
         description="  Prosparity.AI combines advanced GenAI technologies to not only automate outreach but also intelligently classify, strengthen, and convert leads with unprecedented efficiency."
         ctaText="Get Started"
         ctaHref="/dashboard"
-        bottomImage={{
-          light: "https://www.launchuicomponents.com/app-light.png",
-          dark: "https://www.launchuicomponents.com/app-dark.png",
-        }}
         gridOptions={{
           angle: 65,
           opacity: 0.4,
@@ -51,8 +47,8 @@ export default function Landing() {
           <Image
             src="/dashboard.png"
             alt="Prosparity.AI Automation"
-            width={500}
-            height={400}
+            width={800}
+            height={800}
             className="rounded-lg shadow-xl"
           />
         </div>
