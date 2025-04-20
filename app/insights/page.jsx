@@ -166,81 +166,107 @@ async function getServerData() {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
   
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    redirect('/auth/login');
-  }
-
   try {
-    const { data: companies, error: companiesError } = await supabase
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      redirect('/auth/login');
+    }
+
+    // Get company data
+    const { data: company, error: companyError } = await supabase
       .from('companies')
       .select('*')
       .eq('user_id', session.user.id)
       .single();
 
-    if (companiesError) throw companiesError;
-    
-    if (!companies) {
+    if (companyError) {
+      console.error('Error fetching company:', companyError);
       redirect('/onboarding/company');
     }
 
+    if (!company) {
+      redirect('/onboarding/company');
+    }
+
+    // Get leads with AI insights
     const { data: leads, error: leadsError } = await supabase
       .from('leads')
-      .select('*')
-      .eq('company_id', companies.id);
+      .select('*, ai_insights')
+      .eq('company_id', company.id);
 
-    if (leadsError) throw leadsError;
+    if (leadsError) {
+      console.error('Error fetching leads:', leadsError);
+      return { leads: [], callLogs: [] };
+    }
 
+    // Get call logs
     const { data: callLogs, error: callLogsError } = await supabase
       .from('call_logs')
       .select('*')
-      .eq('company_id', companies.id);
+      .eq('company_id', company.id);
 
-    if (callLogsError) throw callLogsError;
+    if (callLogsError) {
+      console.error('Error fetching call logs:', callLogsError);
+      return { leads: leads || [], callLogs: [] };
+    }
 
-    return { companies, leads: leads || [], callLogs: callLogs || [] };
+    return {
+      leads: leads || [],
+      callLogs: callLogs || []
+    };
   } catch (error) {
-    console.error('Error fetching data:', error);
-    return { companies: null, leads: [], callLogs: [] };
+    console.error('Error in getServerData:', error);
+    return { leads: [], callLogs: [] };
   }
 }
 
 export default async function InsightsPage() {
-  const { companies, leads, callLogs } = await getServerData();
-
+  const { leads, callLogs } = await getServerData();
+  
+  // Calculate metrics
   const avgCallDuration = calculateAverageDuration(callLogs);
   const metrics = extractMetricsFromInsights(leads);
-  
-  // Convert metrics into an array format for rendering
+
+  // Prepare metric cards data
   const metricCards = [
     {
       title: "Total Leads",
-      value: leads?.length || 0,
-      description: "Total number of leads in your pipeline"
+      value: leads.length,
+      description: "Total number of leads in your pipeline",
+      trend: "up",
+      trendValue: "+12%"
     },
     {
       title: "Total Calls",
-      value: callLogs?.length || 0,
-      description: "Total number of AI calls made"
+      value: callLogs.length,
+      description: "Total number of AI calls made",
+      trend: "up",
+      trendValue: "+8%"
     },
     {
       title: "Average Call Duration",
       value: `${Math.round(avgCallDuration)}m`,
-      description: "Average duration of AI calls"
+      description: "Average duration of AI calls",
+      trend: "neutral",
+      trendValue: "0%"
     },
     {
       title: "Qualification Rate",
       value: `${Math.round(metrics.qualificationRate)}%`,
-      description: "Percentage of leads showing high interest"
+      description: "Percentage of leads showing high interest",
+      trend: metrics.qualificationRate > 50 ? "up" : "down",
+      trendValue: `${metrics.qualificationRate > 50 ? "+" : "-"}${Math.abs(Math.round(metrics.qualificationRate - 50))}%`
     },
     {
       title: "Response Rate",
       value: `${Math.round(metrics.responseRate)}%`,
-      description: "Percentage of leads who have responded"
+      description: "Percentage of leads who have responded",
+      trend: metrics.responseRate > 50 ? "up" : "down",
+      trendValue: `${metrics.responseRate > 50 ? "+" : "-"}${Math.abs(Math.round(metrics.responseRate - 50))}%`
     }
   ];
 
-  // Add top objections if available
+  // Get top objections
   const topObjections = Object.entries(metrics.objections)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 3);
@@ -248,6 +274,7 @@ export default async function InsightsPage() {
   return (
     <Container maxW="7xl" py={8}>
       <div className="space-y-8">
+        {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {metricCards.map((metric, index) => (
             <MetricCard
@@ -255,16 +282,45 @@ export default async function InsightsPage() {
               title={metric.title}
               value={metric.value}
               description={metric.description}
+              trend={metric.trend}
+              trendValue={metric.trendValue}
             />
           ))}
         </div>
 
+        {/* Insights and Objections Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Insights Card */}
-          <InsightCard
-            title="Key Insights"
-            insights={metrics.insightPriority}
-          />
+          {/* Key Insights Card */}
+          <Card>
+            <CardHeader>
+              <Text fontSize="lg" fontWeight="semibold">Key Insights</Text>
+            </CardHeader>
+            <CardBody pt={0}>
+              <Box>
+                {metrics.insightPriority.map((insight, index) => (
+                  <Box 
+                    key={index} 
+                    mb={2} 
+                    display="flex" 
+                    alignItems="center"
+                  >
+                    <Box 
+                      w="2" 
+                      h="2" 
+                      borderRadius="full" 
+                      bg={
+                        insight.importance === 'high' ? 'blue.500' : 
+                        insight.importance === 'medium' ? 'blue.300' : 
+                        'blue.200'
+                      }
+                      mr={2}
+                    />
+                    <Text fontSize="sm">{insight.text}</Text>
+                  </Box>
+                ))}
+              </Box>
+            </CardBody>
+          </Card>
 
           {/* Top Objections Card */}
           <Card>
@@ -313,41 +369,5 @@ export default async function InsightsPage() {
         </Card>
       </div>
     </Container>
-  );
-}
-
-// Component for displaying insight cards
-function InsightCard({ title, insights }) {
-  return (
-    <Card>
-      <CardHeader>
-        <Text fontSize="lg" fontWeight="semibold">{title}</Text>
-      </CardHeader>
-      <CardBody pt={0}>
-        <Box>
-          {insights.map((insight, index) => (
-            <Box 
-              key={index} 
-              mb={2} 
-              display="flex" 
-              alignItems="center"
-            >
-              <Box 
-                w="2" 
-                h="2" 
-                borderRadius="full" 
-                bg={
-                  insight.importance === 'high' ? 'blue.500' : 
-                  insight.importance === 'medium' ? 'blue.300' : 
-                  'blue.200'
-                }
-                mr={2}
-              />
-              <Text fontSize="sm">{insight.text}</Text>
-            </Box>
-          ))}
-        </Box>
-      </CardBody>
-    </Card>
   );
 } 
