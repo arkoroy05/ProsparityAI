@@ -150,20 +150,10 @@ export default function DashboardLayout({ children }) {
       icon: <Calendar className="w-5 h-5 text-gray-400" />,
     },
     {
-      href: "/dashboard/sales-scripts",
-      label: "Sales Scripts",
-      icon: <FileText className="w-5 h-5 text-gray-400" />,
-    },
-    {
       href: "/insights",
       label: "Insights",
       icon: <BarChart3 className="w-5 h-5 text-gray-400" />,
-    },
-    {
-      href: "/dashboard/settings",
-      label: "Settings",
-      icon: <Settings className="w-5 h-5 text-gray-400" />,
-    },
+    }
   ]
 
   if (loading) {
