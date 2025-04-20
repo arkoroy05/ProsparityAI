@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -43,6 +43,26 @@ export default function DashboardLayout({ children }) {
   const [loading, setLoading] = useState(true)
   const [companyId, setCompanyId] = useState(null)
   const [pathname, setPathname] = useState("")
+
+  const checkUserCompany = useCallback(async (userId) => {
+    try {
+      const { data: companies, error } = await supabase.from("companies").select("id").eq("owner_id", userId).limit(1)
+
+      if (error) throw error
+
+      if (companies && companies.length > 0) {
+        // User has a company
+        setCompanyId(companies[0].id)
+      } else {
+        // User doesn't have a company
+        setCompanyId(null)
+        // Redirect to company registration
+        router.push("/auth/register-company")
+      }
+    } catch (error) {
+      console.error("Error checking user company:", error)
+    }
+  }, [router])
 
   useEffect(() => {
     // Get current session and set up auth state listener
@@ -90,28 +110,10 @@ export default function DashboardLayout({ children }) {
 
     initAuth()
     setPathname(window.location.pathname)
-  }, [router])
+  }, [router, checkUserCompany])
 
   // Check if user has a company
-  const checkUserCompany = async (userId) => {
-    try {
-      const { data: companies, error } = await supabase.from("companies").select("id").eq("owner_id", userId).limit(1)
-
-      if (error) throw error
-
-      if (companies && companies.length > 0) {
-        // User has a company
-        setCompanyId(companies[0].id)
-      } else {
-        // User doesn't have a company
-        setCompanyId(null)
-        // Redirect to company registration
-        router.push("/auth/register-company")
-      }
-    } catch (error) {
-      console.error("Error checking user company:", error)
-    }
-  }
+  // Removed duplicate declaration of checkUserCompany
 
   const handleSignOut = async () => {
     try {

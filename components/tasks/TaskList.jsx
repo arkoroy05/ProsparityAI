@@ -74,18 +74,20 @@ const TaskList = ({ companyId, userId }) => {
   const handleExecuteTask = async (taskId) => {
     try {
       setExecutingTask(taskId);
+      setError(null);
       
       const result = await executeTask(taskId);
       
-      if (result.error) throw new Error(result.error);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to execute task');
+      }
       
       // Refresh tasks to see updated status
-      fetchTasks();
+      await fetchTasks();
       
-      // Could add success notification here
     } catch (error) {
       console.error('Error executing task:', error);
-      // Could add error notification here
+      setError(error.message);
     } finally {
       setExecutingTask(null);
     }
