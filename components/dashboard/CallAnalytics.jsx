@@ -7,143 +7,68 @@ import { CallInsights } from '@/components/calls/CallInsights';
 import { toast } from 'sonner';
 import { AICallService } from '@/lib/ai-call-service';
 import { Loader2, TrendingUp, Users, PhoneCall, Activity } from 'lucide-react';
+import { Alert, AlertIcon } from '@/components/ui';
+import { createClient } from '@/lib/supabase-browser';
 
 export function CallAnalytics({ company }) {
-  const [calls, setCalls] = useState([]);
-  const [selectedCall, setSelectedCall] = useState(null);
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalCalls: 0,
-    completedCalls: 0,
-    averageSentiment: 0,
-    successRate: 0
-  });
+  const supabase = createClient();
 
   useEffect(() => {
-    if (company?.id) {
-      fetchCallData();
-    }
-  }, [company]);
+    async function fetchData() {
+      if (!company?.id) return;
 
-  async function fetchCallData() {
-    if (!company?.id) {
-      console.error('No company ID provided');
-      toast.error('Company information is missing');
-      setLoading(false);
-      return;
-    }
+      try {
+        setLoading(true);
+        setError(null);
 
-    try {
-      setLoading(true);
-      
-      // First check if the company exists
-      const { data: companyData, error: companyError } = await supabase
-        .from('companies')
-        .select('id')
-        .eq('id', company.id)
-        .single();
+        const { data: callLogs, error: callError } = await supabase
+          .from('call_logs')
+          .select('*')
+          .eq('company_id', company.id);
 
-      if (companyError) {
-        console.error('Error verifying company:', companyError);
-        throw new Error('Company not found');
-      }
+        if (callError) throw callError;
 
-      // Fetch recent calls with all related data
-      const { data: recentCalls, error: callsError } = await supabase
-        .from('call_logs')
-        .select(`
-          id,
-          call_sid,
-          status,
-          duration,
-          recording_url,
-          sentiment_score,
-          created_at,
-          updated_at,
-          notes,
-          metadata,
-          leads:lead_id (
-            id,
-            name,
-            email,
-            phone,
-            company_name
-          ),
-          companies:company_id (
-            id,
-            name
-          )
-        `)
-        .eq('company_id', company.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
+        // Process the data safely
+        const processedData = callLogs.map(log => {
+          try {
+            // If the data is a string, parse it
+            const transcript = typeof log.transcript === 'string' 
+              ? JSON.parse(log.transcript)
+              : log.transcript;
 
-      if (callsError) {
-        console.error('Error fetching recent calls:', callsError);
-        throw new Error(callsError.message || 'Failed to fetch recent calls');
-      }
+            const analysis = typeof log.analysis === 'string'
+              ? JSON.parse(log.analysis)
+              : log.analysis;
 
-      // Set calls even if empty array
-      setCalls(recentCalls || []);
-
-      // Fetch call statistics for the last 30 days
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-      const { data: callStats, error: statsError } = await supabase
-        .from('call_logs')
-        .select('status, sentiment_score, created_at')
-        .eq('company_id', company.id)
-        .gte('created_at', thirtyDaysAgo.toISOString());
-
-      if (statsError) {
-        console.error('Error fetching call statistics:', statsError);
-        throw new Error(statsError.message || 'Failed to fetch call statistics');
-      }
-
-      if (callStats && callStats.length > 0) {
-        const totalCalls = callStats.length;
-        const completedCalls = callStats.filter(call => call.status === 'completed').length;
-        
-        // Calculate average sentiment only for completed calls with sentiment scores
-        const completedCallsWithSentiment = callStats.filter(
-          call => call.status === 'completed' && call.sentiment_score !== null
-        );
-        
-        const averageSentiment = completedCallsWithSentiment.length > 0
-          ? completedCallsWithSentiment.reduce((acc, call) => acc + (call.sentiment_score || 0), 0) / completedCallsWithSentiment.length
-          : 0;
-        
-        const successRate = totalCalls > 0 ? (completedCalls / totalCalls) * 100 : 0;
-
-        setStats({
-          totalCalls,
-          completedCalls,
-          averageSentiment: Number.isFinite(averageSentiment) ? parseFloat(averageSentiment.toFixed(2)) : 0,
-          successRate: Number.isFinite(successRate) ? parseFloat(successRate.toFixed(1)) : 0
+            return {
+              ...log,
+              transcript,
+              analysis
+            };
+          } catch (parseError) {
+            console.error('Error parsing call log data:', parseError);
+            return {
+              ...log,
+              transcript: null,
+              analysis: null
+            };
+          }
         });
-      } else {
-        setStats({
-          totalCalls: 0,
-          completedCalls: 0,
-          averageSentiment: 0,
-          successRate: 0
-        });
+
+        setData(processedData);
+      } catch (error) {
+        console.error('Error fetching call analytics:', error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error in fetchCallData:', error);
-      toast.error(error.message || 'Failed to load call data');
-      setCalls([]);
-      setStats({
-        totalCalls: 0,
-        completedCalls: 0,
-        averageSentiment: 0,
-        successRate: 0
-      });
-    } finally {
-      setLoading(false);
     }
-  }
+
+    fetchData();
+  }, [company?.id]);
 
   const handleMakeCall = async (lead) => {
     if (!lead?.phone) {
@@ -155,7 +80,7 @@ export function CallAnalytics({ company }) {
       const result = await AICallService.makeCall(lead.phone, lead, company);
       if (result.success) {
         toast.success('Call initiated successfully');
-        fetchCallData(); // Refresh the call data
+        fetchData(); // Refresh the call data
       } else {
         throw new Error(result.error || 'Failed to initiate call');
       }
@@ -167,9 +92,27 @@ export function CallAnalytics({ company }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert status="error" variant="left-accent">
+        <AlertIcon />
+        Error loading call analytics: {error}
+      </Alert>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <Alert status="info" variant="left-accent">
+        <AlertIcon />
+        No call data available yet. Start making calls to see analytics here.
+      </Alert>
     );
   }
 
@@ -182,7 +125,7 @@ export function CallAnalytics({ company }) {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">${(stats.totalCalls * 100).toLocaleString()}</div>
+            <div className="text-2xl font-bold text-white">${(data.length * 100).toLocaleString()}</div>
             <p className="text-xs text-[#4ade80] mt-1">+20.1% from last month</p>
           </CardContent>
         </Card>
@@ -192,7 +135,7 @@ export function CallAnalytics({ company }) {
             <PhoneCall className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{stats.totalCalls.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-white">{data.length.toLocaleString()}</div>
             <p className="text-xs text-[#4ade80] mt-1">+15% from last month</p>
           </CardContent>
         </Card>
@@ -202,7 +145,7 @@ export function CallAnalytics({ company }) {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{stats.completedCalls.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-white">{data.filter(call => call.status === 'completed').length.toLocaleString()}</div>
             <p className="text-xs text-[#4ade80] mt-1">+201 since last hour</p>
           </CardContent>
         </Card>
@@ -212,7 +155,7 @@ export function CallAnalytics({ company }) {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{stats.successRate.toFixed(1)}%</div>
+            <div className="text-2xl font-bold text-white">{((data.filter(call => call.status === 'completed').length / data.length) * 100).toFixed(1)}%</div>
             <p className="text-xs text-[#4ade80] mt-1">+5.2% from last week</p>
           </CardContent>
         </Card>
@@ -225,14 +168,13 @@ export function CallAnalytics({ company }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {calls.length === 0 ? (
+              {data.length === 0 ? (
                 <p className="text-muted-foreground">No calls recorded yet</p>
               ) : (
-                calls.map((call) => (
+                data.map((call) => (
                   <div
                     key={call.id}
                     className="p-4 border border-[#2a2d35] rounded-lg cursor-pointer hover:bg-[#2a2d35] transition-colors"
-                    onClick={() => setSelectedCall(call)}
                   >
                     <div className="flex justify-between items-center">
                       <div>
@@ -284,12 +226,8 @@ export function CallAnalytics({ company }) {
             <CardTitle className="text-lg font-semibold text-white">Call Details</CardTitle>
           </CardHeader>
           <CardContent>
-            {selectedCall ? (
-              <CallInsights call={selectedCall} />
-            ) : (
-              <div className="text-center text-muted-foreground py-8">
-                Select a call to view details
-              </div>
+            {data.length > 0 && (
+              <CallInsights call={data[0]} />
             )}
           </CardContent>
         </Card>

@@ -12,6 +12,7 @@ export function AIInstructions({ company }) {
   const [saving, setSaving] = useState(false);
   const [generatedInstructions, setGeneratedInstructions] = useState('');
   const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (company?.id) {
@@ -79,85 +80,73 @@ export function AIInstructions({ company }) {
     
     const attemptSave = async () => {
       try {
-        setSaving(true);
-        
-        // First check if the record exists
-        console.log('Checking for existing company settings...');
-        const { data, error: checkError } = await supabase
-          .from('company_settings')
-          .select('id')
-          .eq('company_id', company.id)
-          .maybeSingle();
-        
-        if (checkError) {
-          console.error('Error checking company settings:', checkError);
-          throw new Error('Failed to verify settings record');
-        }
+        setLoading(true);
+        setError(null);
 
-        // If no record exists, create it through the API
-        if (!data?.id) {
-          console.log('No settings record found, initializing...');
-          const initResponse = await fetch('/api/settings/init', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ companyId: company.id }),
-            cache: 'no-store',
-          });
+        // First try to initialize settings
+        const initResponse = await fetch('/api/settings/init', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ companyId: company.id }),
+          cache: 'no-store',
+        });
 
-          if (!initResponse.ok) {
-            console.error('Init API response status:', initResponse.status);
-            const errorText = await initResponse.text();
-            console.error('Init API error response:', errorText);
-            try {
-              const errorData = JSON.parse(errorText);
-              throw new Error(errorData.message || 'Failed to initialize settings');
-            } catch (parseError) {
-              throw new Error(`Failed to initialize settings: ${initResponse.status}`);
-            }
-          }
+        let errorText;
+        try {
+          errorText = await initResponse.text();
+          // Try to parse the error text as JSON
+          const errorData = JSON.parse(errorText);
           
-          console.log('Settings initialized successfully');
+          if (!initResponse.ok) {
+            throw new Error(errorData.message || `Failed to initialize settings: ${initResponse.status}`);
+          }
+        } catch (parseError) {
+          // If parsing fails, use the raw error text
+          if (!initResponse.ok) {
+            throw new Error(`Failed to initialize settings: ${errorText || initResponse.status}`);
+          }
         }
 
-        // Add a short delay to ensure the database has processed the init request
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // If initialization was successful, save the instructions
+        const saveResponse = await fetch('/api/settings/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            companyId: company.id,
+            instructions: instructions,
+          }),
+        });
 
-        // Now update the instructions
-        console.log('Updating instructions...');
-        const { error: updateError } = await supabase
-          .from('company_settings')
-          .update({ 
-            ai_instructions: instructions,
-            updated_at: new Date().toISOString()
-          })
-          .eq('company_id', company.id);
+        let saveErrorText;
+        try {
+          saveErrorText = await saveResponse.text();
+          // Try to parse the save response as JSON
+          const saveData = JSON.parse(saveErrorText);
+          
+          if (!saveResponse.ok) {
+            throw new Error(saveData.message || `Failed to save instructions: ${saveResponse.status}`);
+          }
 
-        if (updateError) {
-          console.error('Error updating instructions:', updateError);
-          throw new Error('Failed to save instructions');
+          setInstructions(saveData.instructions || instructions);
+          toast.success('Instructions saved successfully');
+        } catch (parseError) {
+          // If parsing fails, use the raw error text
+          if (!saveResponse.ok) {
+            throw new Error(`Failed to save instructions: ${saveErrorText || saveResponse.status}`);
+          }
+          // If response was ok but parsing failed, assume success
+          toast.success('Instructions saved successfully');
         }
-
-        console.log('Instructions saved successfully');
-        toast.success('AI instructions saved successfully');
-        return true;
       } catch (error) {
-        console.error('Error in save attempt:', error);
-        
-        if (retryCount < maxRetries) {
-          retryCount++;
-          console.log(`Retrying save (${retryCount}/${maxRetries})...`);
-          await new Promise(resolve => setTimeout(resolve, 500));
-          return attemptSave();
-        }
-        
-        toast.error(error.message || 'Failed to save AI instructions');
-        return false;
+        console.error('Error saving instructions:', error);
+        setError(error.message);
+        toast.error(error.message);
       } finally {
-        if (retryCount === maxRetries || retryCount === 0) {
-          setSaving(false);
-        }
+        setLoading(false);
       }
     };
     

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heading, Box, Text, SimpleGrid, Card, CardHeader, CardBody, Spinner, Alert, AlertIcon } from '@/components/ui';
+import { Heading, Box, Text, SimpleGrid, Card, CardHeader, CardBody, Spinner, Alert, AlertIcon, Badge } from '@/components/ui';
 import { Container } from '@/components/ui/container';
 import { getUser, requireAuth } from '@/lib/auth-utils';
 import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
@@ -24,6 +24,23 @@ function calculateAverageDuration(callLogs) {
   return totalDuration / callsWithDuration.length;
 }
 
+// Helper to safely parse AI insights
+function safeParseAIInsights(lead) {
+  try {
+    if (!lead.ai_insights) return null;
+    
+    // If ai_insights is a string, try to parse it
+    const insights = typeof lead.ai_insights === 'string' 
+      ? JSON.parse(lead.ai_insights)
+      : lead.ai_insights;
+      
+    return insights;
+  } catch (error) {
+    console.error('Error parsing AI insights:', error);
+    return null;
+  }
+}
+
 // Helper to extract metrics from AI insights
 function extractMetricsFromInsights(leads) {
   // Initialize counters
@@ -43,27 +60,27 @@ function extractMetricsFromInsights(leads) {
   
   if (!leads || leads.length === 0) return metrics;
   
-  // Count qualified leads
-  const qualifiedLeads = leads.filter(lead => 
-    lead.ai_insights?.classification?.interest === 'high' || 
-    lead.ai_insights?.classification?.interest === 'medium'
-  );
-  
-  metrics.qualificationRate = leads.length > 0 ? (qualifiedLeads.length / leads.length) * 100 : 0;
-  
-  // Count leads that have responded
-  const respondedLeads = leads.filter(lead => 
-    lead.ai_insights?.classification?.conversationHistory && 
-    lead.ai_insights?.classification?.conversationHistory.length > 0
-  );
-  
-  metrics.responseRate = leads.length > 0 ? (respondedLeads.length / leads.length) * 100 : 0;
-  
-  // Process objections
+  // Process each lead with safe parsing
   leads.forEach(lead => {
-    const objections = lead.ai_insights?.classification?.objections || [];
+    const insights = safeParseAIInsights(lead);
+    if (!insights) return; // Skip leads with invalid insights
+    
+    // Update qualification rate
+    if (insights.classification?.interest === 'high' || insights.classification?.interest === 'medium') {
+      metrics.qualificationRate++;
+    }
+    
+    // Update response rate
+    if (insights.classification?.conversationHistory?.length > 0) {
+      metrics.responseRate++;
+    }
+    
+    // Process objections safely
+    const objections = insights.classification?.objections || [];
     objections.forEach(objection => {
-      metrics.objections[objection] = (metrics.objections[objection] || 0) + 1;
+      if (typeof objection === 'string') {
+        metrics.objections[objection] = (metrics.objections[objection] || 0) + 1;
+      }
     });
     
     // Process lead source
@@ -71,17 +88,19 @@ function extractMetricsFromInsights(leads) {
     metrics.leadSources[source] = (metrics.leadSources[source] || 0) + 1;
     
     // Process sentiment
-    if (lead.ai_insights?.classification?.interest === 'high') {
+    if (insights.classification?.interest === 'high') {
       metrics.sentiments.positive += 1;
-    } else if (lead.ai_insights?.classification?.interest === 'none') {
+    } else if (insights.classification?.interest === 'none') {
       metrics.sentiments.negative += 1;
     } else {
       metrics.sentiments.neutral += 1;
     }
     
-    // Process insights
-    const insights = lead.ai_insights?.classification?.insights || [];
-    insights.forEach(insight => {
+    // Process insights safely
+    const insightsList = insights.classification?.insights || [];
+    insightsList.forEach(insight => {
+      if (typeof insight !== 'string') return;
+      
       if (insight.includes('team size')) {
         metrics.discussionTopics['Team Size'] = (metrics.discussionTopics['Team Size'] || 0) + 1;
       }
@@ -96,12 +115,17 @@ function extractMetricsFromInsights(leads) {
       }
     });
   });
-  
-  // Convert to percentages
+
+  // Calculate percentages
   const totalLeads = leads.length;
-  Object.keys(metrics.leadSources).forEach(source => {
-    metrics.leadSources[source] = (metrics.leadSources[source] / totalLeads) * 100;
-  });
+  if (totalLeads > 0) {
+    metrics.qualificationRate = (metrics.qualificationRate / totalLeads) * 100;
+    metrics.responseRate = (metrics.responseRate / totalLeads) * 100;
+    
+    Object.keys(metrics.leadSources).forEach(source => {
+      metrics.leadSources[source] = (metrics.leadSources[source] / totalLeads) * 100;
+    });
+  }
   
   // Convert objections to percentages
   const totalObjections = Object.values(metrics.objections).reduce((sum, count) => sum + count, 0);
@@ -187,34 +211,106 @@ export default async function InsightsPage() {
   const avgCallDuration = calculateAverageDuration(callLogs);
   const metrics = extractMetricsFromInsights(leads);
   
+  // Convert metrics into an array format for rendering
+  const metricCards = [
+    {
+      title: "Total Leads",
+      value: leads?.length || 0,
+      description: "Total number of leads in your pipeline"
+    },
+    {
+      title: "Total Calls",
+      value: callLogs?.length || 0,
+      description: "Total number of AI calls made"
+    },
+    {
+      title: "Average Call Duration",
+      value: `${Math.round(avgCallDuration)}m`,
+      description: "Average duration of AI calls"
+    },
+    {
+      title: "Qualification Rate",
+      value: `${Math.round(metrics.qualificationRate)}%`,
+      description: "Percentage of leads showing high interest"
+    },
+    {
+      title: "Response Rate",
+      value: `${Math.round(metrics.responseRate)}%`,
+      description: "Percentage of leads who have responded"
+    }
+  ];
+
+  // Add top objections if available
+  const topObjections = Object.entries(metrics.objections)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3);
+
   return (
     <Container maxW="7xl" py={8}>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <MetricCard
-          title="Total Leads"
-          value={leads?.length || 0}
-          description="Total number of leads in your pipeline"
-        />
-        <MetricCard
-          title="Total Calls"
-          value={callLogs?.length || 0}
-          description="Total number of AI calls made"
-        />
-        <MetricCard
-          title="Average Call Duration"
-          value={`${avgCallDuration}m`}
-          description="Average duration of AI calls"
-        />
-        {metrics.map((metric, index) => (
-          <MetricCard
-            key={index}
-            title={metric.title}
-            value={metric.value}
-            description={metric.description}
-            trend={metric.trend}
-            trendValue={metric.trendValue}
+      <div className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {metricCards.map((metric, index) => (
+            <MetricCard
+              key={index}
+              title={metric.title}
+              value={metric.value}
+              description={metric.description}
+            />
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Insights Card */}
+          <InsightCard
+            title="Key Insights"
+            insights={metrics.insightPriority}
           />
-        ))}
+
+          {/* Top Objections Card */}
+          <Card>
+            <CardHeader>
+              <Text fontSize="lg" fontWeight="semibold">Top Objections</Text>
+            </CardHeader>
+            <CardBody pt={0}>
+              <Box>
+                {topObjections.map(([objection, percentage], index) => (
+                  <Box 
+                    key={index} 
+                    mb={2} 
+                    display="flex" 
+                    alignItems="center"
+                    justifyContent="space-between"
+                  >
+                    <Text fontSize="sm">{objection}</Text>
+                    <Badge variant="outline">{Math.round(percentage)}%</Badge>
+                  </Box>
+                ))}
+              </Box>
+            </CardBody>
+          </Card>
+        </div>
+
+        {/* Discussion Topics */}
+        <Card>
+          <CardHeader>
+            <Text fontSize="lg" fontWeight="semibold">Discussion Topics</Text>
+          </CardHeader>
+          <CardBody pt={0}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Object.entries(metrics.discussionTopics).map(([topic, count], index) => (
+                <Box 
+                  key={index}
+                  p={4}
+                  bg="gray.800"
+                  borderRadius="md"
+                >
+                  <Text fontSize="sm" color="gray.400">{topic}</Text>
+                  <Text fontSize="lg" fontWeight="bold">{count} mentions</Text>
+                </Box>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
       </div>
     </Container>
   );
