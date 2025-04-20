@@ -35,13 +35,44 @@ export function CallAnalytics({ company }) {
 
     try {
       setLoading(true);
-      // Fetch recent calls
+      
+      // First check if the company exists
+      const { data: companyData, error: companyError } = await supabase
+        .from('companies')
+        .select('id')
+        .eq('id', company.id)
+        .single();
+
+      if (companyError) {
+        console.error('Error verifying company:', companyError);
+        throw new Error('Company not found');
+      }
+
+      // Fetch recent calls with all related data
       const { data: recentCalls, error: callsError } = await supabase
         .from('call_logs')
         .select(`
-          *,
-          leads:lead_id (name, email, phone),
-          companies:company_id (name)
+          id,
+          call_sid,
+          status,
+          duration,
+          recording_url,
+          sentiment_score,
+          created_at,
+          updated_at,
+          notes,
+          metadata,
+          leads:lead_id (
+            id,
+            name,
+            email,
+            phone,
+            company_name
+          ),
+          companies:company_id (
+            id,
+            name
+          )
         `)
         .eq('company_id', company.id)
         .order('created_at', { ascending: false })
@@ -49,33 +80,47 @@ export function CallAnalytics({ company }) {
 
       if (callsError) {
         console.error('Error fetching recent calls:', callsError);
-        throw new Error('Failed to fetch recent calls');
+        throw new Error(callsError.message || 'Failed to fetch recent calls');
       }
 
+      // Set calls even if empty array
       setCalls(recentCalls || []);
 
-      // Fetch call statistics
+      // Fetch call statistics for the last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
       const { data: callStats, error: statsError } = await supabase
         .from('call_logs')
-        .select('status, sentiment_score')
-        .eq('company_id', company.id);
+        .select('status, sentiment_score, created_at')
+        .eq('company_id', company.id)
+        .gte('created_at', thirtyDaysAgo.toISOString());
 
       if (statsError) {
         console.error('Error fetching call statistics:', statsError);
-        throw new Error('Failed to fetch call statistics');
+        throw new Error(statsError.message || 'Failed to fetch call statistics');
       }
 
       if (callStats && callStats.length > 0) {
         const totalCalls = callStats.length;
         const completedCalls = callStats.filter(call => call.status === 'completed').length;
-        const averageSentiment = callStats.reduce((acc, call) => acc + (call.sentiment_score || 0), 0) / totalCalls;
-        const successRate = (completedCalls / totalCalls) * 100;
+        
+        // Calculate average sentiment only for completed calls with sentiment scores
+        const completedCallsWithSentiment = callStats.filter(
+          call => call.status === 'completed' && call.sentiment_score !== null
+        );
+        
+        const averageSentiment = completedCallsWithSentiment.length > 0
+          ? completedCallsWithSentiment.reduce((acc, call) => acc + (call.sentiment_score || 0), 0) / completedCallsWithSentiment.length
+          : 0;
+        
+        const successRate = totalCalls > 0 ? (completedCalls / totalCalls) * 100 : 0;
 
         setStats({
           totalCalls,
           completedCalls,
-          averageSentiment,
-          successRate
+          averageSentiment: Number.isFinite(averageSentiment) ? parseFloat(averageSentiment.toFixed(2)) : 0,
+          successRate: Number.isFinite(successRate) ? parseFloat(successRate.toFixed(1)) : 0
         });
       } else {
         setStats({
