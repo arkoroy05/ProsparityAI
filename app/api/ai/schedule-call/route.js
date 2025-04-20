@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { aiAgent } from '@/lib/ai-agent';
+import { getAIAgent } from '@/lib/ai-agent';
 
 export async function POST(request) {
   try {
@@ -12,6 +12,7 @@ export async function POST(request) {
       );
     }
 
+    const aiAgent = getAIAgent();
     const result = await aiAgent.execute(
       `Schedule a call with ${leadInfo.name} for ${new Date(scheduledTime).toLocaleString()}`,
       { leadInfo, companyInfo, scheduledTime }
