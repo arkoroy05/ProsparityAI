@@ -49,7 +49,7 @@ export default function Landing() {
       <section className="container mx-auto px-4 py-20 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <div>
           <Image
-            src="/placeholder.svg?height=400&width=500"
+            src="/dashboard.png"
             alt="Prosparity.AI Automation"
             width={500}
             height={400}
