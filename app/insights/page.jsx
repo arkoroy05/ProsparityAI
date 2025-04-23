@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heading, Box, Text, SimpleGrid, Card, CardHeader, CardBody, Spinner, Alert, AlertIcon, Badge } from '@/components/ui';
+import { Heading, Box, Text, SimpleGrid, Card, CardHeader, CardContent, Spinner, Alert, AlertIcon, Badge } from '@/components/ui';
 import { Container } from '@/components/ui/container';
 import { getUser, requireAuth } from '@/lib/auth-utils';
 import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
@@ -295,7 +295,7 @@ export default async function InsightsPage() {
             <CardHeader>
               <Text fontSize="lg" fontWeight="semibold">Key Insights</Text>
             </CardHeader>
-            <CardBody pt={0}>
+            <CardContent pt={0}>
               <Box>
                 {metrics.insightPriority.map((insight, index) => (
                   <Box 
@@ -319,7 +319,7 @@ export default async function InsightsPage() {
                   </Box>
                 ))}
               </Box>
-            </CardBody>
+            </CardContent>
           </Card>
 
           {/* Top Objections Card */}
@@ -327,7 +327,7 @@ export default async function InsightsPage() {
             <CardHeader>
               <Text fontSize="lg" fontWeight="semibold">Top Objections</Text>
             </CardHeader>
-            <CardBody pt={0}>
+            <CardContent pt={0}>
               <Box>
                 {topObjections.map(([objection, percentage], index) => (
                   <Box 
@@ -342,7 +342,7 @@ export default async function InsightsPage() {
                   </Box>
                 ))}
               </Box>
-            </CardBody>
+            </CardContent>
           </Card>
         </div>
 
@@ -351,7 +351,7 @@ export default async function InsightsPage() {
           <CardHeader>
             <Text fontSize="lg" fontWeight="semibold">Discussion Topics</Text>
           </CardHeader>
-          <CardBody pt={0}>
+          <CardContent pt={0}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {Object.entries(metrics.discussionTopics).map(([topic, count], index) => (
                 <Box 
@@ -365,7 +365,7 @@ export default async function InsightsPage() {
                 </Box>
               ))}
             </div>
-          </CardBody>
+          </CardContent>
         </Card>
       </div>
     </Container>

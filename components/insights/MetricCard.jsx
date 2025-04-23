@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Card, CardHeader, CardBody, Box, Text } from '@/components/ui';
+import { Card, CardHeader, CardContent, Box, Text } from '@/components/ui';
 
 export function MetricCard({ title, value, description, trend, trendValue }) {
   return (
@@ -9,7 +9,7 @@ export function MetricCard({ title, value, description, trend, trendValue }) {
       <CardHeader pb={0}>
         <Text fontSize="sm" color="gray.500">{title}</Text>
       </CardHeader>
-      <CardBody>
+      <CardContent>
         <Box display="flex" alignItems="baseline">
           <Text fontSize="3xl" fontWeight="bold" mr={2}>{value}</Text>
           {trend && (
@@ -23,7 +23,7 @@ export function MetricCard({ title, value, description, trend, trendValue }) {
           )}
         </Box>
         <Text fontSize="sm" color="gray.600" mt={1}>{description}</Text>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 } 

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { supabase } from '@/lib/supabase';
@@ -11,13 +11,7 @@ const CallsPage = ({ user, companyId }) => {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all'); // all, scheduled, completed, failed
 
-  useEffect(() => {
-    if (companyId) {
-      fetchCalls();
-    }
-  }, [companyId, filter]);
-
-  const fetchCalls = async () => {
+  const fetchCalls = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -57,7 +51,13 @@ const CallsPage = ({ user, companyId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [companyId, filter]);
+
+  useEffect(() => {
+    if (companyId) {
+      fetchCalls();
+    }
+  }, [companyId, filter, fetchCalls]);
 
   const getStatusClass = (status) => {
     switch (status) {
