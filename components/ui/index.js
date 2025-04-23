@@ -1,12 +1,12 @@
 // UI Components barrel file
 // Export card components
-export { Card, CardHeader, CardBody } from './card';
+export { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from './card';
 export { Button } from './button';
 export { Badge } from './badge';
 export { Avatar, AvatarImage, AvatarFallback } from './avatar';
 export { Input } from './input';
 export { Textarea } from './textarea';
-export { Tabs, TabList, Tab, TabPanels, TabPanel } from './tabs';
+export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
 
 // These components don't exist yet, so we're creating simple implementations
 export const Box = ({ children, ...props }) => {
