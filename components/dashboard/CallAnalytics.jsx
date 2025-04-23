@@ -2,34 +2,80 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabase';
+import { createSupabaseClient } from '@/lib/supabase-browser';
 import { CallInsights } from '@/components/calls/CallInsights';
 import { toast } from 'sonner';
 import { AICallService } from '@/lib/ai-call-service';
 import { Loader2, TrendingUp, Users, PhoneCall, Activity } from 'lucide-react';
 import { Alert, AlertIcon } from '@/components/ui';
-import { createClient } from '@/lib/supabase-browser';
 
 export function CallAnalytics({ company }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   useEffect(() => {
     async function fetchData() {
-      if (!company?.id) return;
+      if (!company?.id) {
+        setError('Company information is missing');
+        setLoading(false);
+        return;
+      }
 
       try {
         setLoading(true);
         setError(null);
 
+        const supabase = createSupabaseClient();
+        if (!supabase) {
+          throw new Error('Failed to initialize Supabase client');
+        }
+
+        // First verify access to the company
+        const { data: companyAccess, error: accessError } = await supabase
+          .from('user_companies')
+          .select('company_id')
+          .eq('company_id', company.id)
+          .single();
+
+        if (accessError) {
+          console.error('Company access verification failed:', accessError);
+          throw new Error(`Access verification failed: ${accessError.message || 'Unknown error'}`);
+        }
+
+        if (!companyAccess) {
+          throw new Error('You do not have access to this company\'s data');
+        }
+
+        // Then fetch call logs with related data
         const { data: callLogs, error: callError } = await supabase
           .from('call_logs')
-          .select('*')
-          .eq('company_id', company.id);
+          .select(`
+            *,
+            leads:lead_id (
+              id,
+              name,
+              phone,
+              email
+            ),
+            companies:company_id (
+              id,
+              name
+            )
+          `)
+          .eq('company_id', company.id)
+          .order('created_at', { ascending: false });
 
-        if (callError) throw callError;
+        if (callError) {
+          console.error('Supabase query error:', JSON.stringify(callError, null, 2));
+          throw new Error(`Failed to fetch call logs: ${callError.message || 'Unknown error'}`);
+        }
+
+        if (!callLogs) {
+          console.warn('No call logs found for company:', company.id);
+          setData([]);
+          return;
+        }
 
         // Process the data safely
         const processedData = callLogs.map(log => {
@@ -49,7 +95,7 @@ export function CallAnalytics({ company }) {
               analysis
             };
           } catch (parseError) {
-            console.error('Error parsing call log data:', parseError);
+            console.error('Error parsing call log data for log ID:', log.id, parseError);
             return {
               ...log,
               transcript: null,
@@ -61,7 +107,7 @@ export function CallAnalytics({ company }) {
         setData(processedData);
       } catch (error) {
         console.error('Error fetching call analytics:', error);
-        setError(error.message);
+        setError(error.message || 'An unexpected error occurred while fetching call data');
       } finally {
         setLoading(false);
       }

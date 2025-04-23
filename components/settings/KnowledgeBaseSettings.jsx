@@ -26,12 +26,12 @@ import {
   HStack
 } from '@/components/ui';
 import { FiSave, FiPlus, FiTrash } from 'react-icons/fi';
-import { createClient } from '@/lib/supabase/client';
+import { createSupabaseClient } from '@/lib/supabase-browser';
 import { useUser } from '@/lib/auth-hooks';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 export default function KnowledgeBaseSettings({ companyId }) {
-  const supabase = createClient();
+  const supabase = createSupabaseClient();
   const { user } = useUser();
   const toast = useToast();
   
