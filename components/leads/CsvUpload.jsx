@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { parseLeadsFromCSV, validateCSVData } from '@/lib/csv-parser';
-import { addLeadsFromCsv } from '@/lib/lead-utils';
+import { addLeadsFromCsv, formatPhoneNumber } from '@/lib/lead-utils';
 
 const CsvUpload = ({ companyId, userId, onSuccess }) => {
   const fileInputRef = useRef(null);
@@ -182,7 +182,7 @@ const CsvUpload = ({ companyId, userId, onSuccess }) => {
                   <tr key={index}>
                     <td className="px-3 py-2 text-xs text-gray-300 whitespace-nowrap">{lead.name}</td>
                     <td className="px-3 py-2 text-xs text-gray-300 whitespace-nowrap">{lead.email}</td>
-                    <td className="px-3 py-2 text-xs text-gray-300 whitespace-nowrap">{lead.phone}</td>
+                    <td className="px-3 py-2 text-xs text-gray-300 whitespace-nowrap">{formatPhoneNumber(lead.phone)}</td>
                     <td className="px-3 py-2 text-xs text-gray-300 whitespace-nowrap">{lead.company_name}</td>
                     <td className="px-3 py-2 text-xs text-gray-300 whitespace-nowrap">{lead.designation}</td>
                   </tr>

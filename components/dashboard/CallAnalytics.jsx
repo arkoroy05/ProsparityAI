@@ -47,23 +47,31 @@ export function CallAnalytics({ company }) {
           throw new Error('You do not have access to this company\'s data');
         }
 
-        // Then fetch call logs with related data
+        // First get all tasks for this company
+        const { data: companyTasks, error: tasksError } = await supabase
+          .from('tasks')
+          .select('id')
+          .eq('company_id', company.id);
+
+        if (tasksError) {
+          console.error('Error fetching company tasks:', tasksError);
+          throw new Error(`Failed to fetch company tasks: ${tasksError.message || 'Unknown error'}`);
+        }
+
+        if (!companyTasks || companyTasks.length === 0) {
+          console.warn('No tasks found for company:', company.id);
+          setData([]);
+          return;
+        }
+
+        // Get task IDs
+        const taskIds = companyTasks.map(task => task.id);
+
+        // Now fetch call logs for these tasks
         const { data: callLogs, error: callError } = await supabase
           .from('call_logs')
-          .select(`
-            *,
-            leads:lead_id (
-              id,
-              name,
-              phone,
-              email
-            ),
-            companies:company_id (
-              id,
-              name
-            )
-          `)
-          .eq('company_id', company.id)
+          .select('*')
+          .in('task_id', taskIds)
           .order('created_at', { ascending: false });
 
         if (callError) {
@@ -71,14 +79,66 @@ export function CallAnalytics({ company }) {
           throw new Error(`Failed to fetch call logs: ${callError.message || 'Unknown error'}`);
         }
 
-        if (!callLogs) {
-          console.warn('No call logs found for company:', company.id);
+        if (!callLogs || callLogs.length === 0) {
+          console.warn('No call logs found for company tasks:', company.id);
           setData([]);
           return;
         }
 
+        // Get all unique lead IDs
+        const leadIds = [...new Set(callLogs.map(log => log.lead_id))].filter(Boolean);
+        
+        // Fetch related leads data if there are any lead IDs
+        let leadsData = {};
+        if (leadIds.length > 0) {
+          const { data: leads, error: leadsError } = await supabase
+            .from('leads')
+            .select('id, name, phone, email')
+            .in('id', leadIds);
+            
+          if (leadsError) {
+            console.error('Error fetching leads:', leadsError);
+          } else if (leads) {
+            // Create a map of lead ID to lead data
+            leadsData = leads.reduce((acc, lead) => {
+              acc[lead.id] = lead;
+              return acc;
+            }, {});
+          }
+        }
+
+        // Fetch the task details for each call log
+        let tasksData = {};
+        if (taskIds.length > 0) {
+          const { data: tasks, error: taskDetailsError } = await supabase
+            .from('tasks')
+            .select('id, title, company_id')
+            .in('id', taskIds);
+            
+          if (taskDetailsError) {
+            console.error('Error fetching task details:', taskDetailsError);
+          } else if (tasks) {
+            // Create a map of task ID to task data
+            tasksData = tasks.reduce((acc, task) => {
+              acc[task.id] = task;
+              return acc;
+            }, {});
+          }
+        }
+
+        // Enhance call logs with lead and task data
+        const enhancedCallLogs = callLogs.map(log => ({
+          ...log,
+          leads: log.lead_id ? leadsData[log.lead_id] : null,
+          tasks: log.task_id ? tasksData[log.task_id] : null,
+          companies: { 
+            id: log.task_id && tasksData[log.task_id] ? tasksData[log.task_id].company_id : company.id, 
+            name: company.name 
+          }
+        }));
+
         // Process the data safely
-        const processedData = callLogs.map(log => {
+        const processedData = enhancedCallLogs.map(log => {
           try {
             // If the data is a string, parse it
             const transcript = typeof log.transcript === 'string' 

@@ -106,6 +106,7 @@ export default function DashboardPage() {
           <TabsContent value="ai" className="space-y-6">
             <Card className="bg-gray-900/50 border-gray-800 shadow-lg hover:shadow-pink-500/10 transition-all">
               <div className="p-6">
+                {console.log('Dashboard page - company object for AIInstructions:', company)}
                 <AIInstructions company={company} />
               </div>
             </Card>

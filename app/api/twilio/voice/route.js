@@ -13,10 +13,20 @@ const MAX_RETRIES = 2;
 
 // Configure speech recognition settings
 const gatherOptions = {
-  input: 'speech',
+  input: 'speech dtmf',
   language: 'en-US',
   speechTimeout: 'auto',
-  enhanced: true
+  enhanced: true,
+  action: '/api/twilio/voice',
+  method: 'POST',
+  finishOnKey: '#',
+  numDigits: 1,
+  timeout: 10,
+  hints: [
+    'yes', 'no', 'interested', 'not interested', 'busy', 'later',
+    'price', 'cost', 'budget', 'demo', 'schedule', 'meeting',
+    'more information', 'details', 'help', 'support', 'contact'
+  ]
 };
 
 // Helper function to check if we should end the conversation
@@ -34,6 +44,21 @@ function checkEndConversation(speechResult) {
   return endPhrases.some(phrase => input.includes(phrase));
 }
 
+// Helper function to create gather with proper configuration
+function createGather(twiml, message, additionalParams = {}) {
+  const gather = twiml.gather({
+    ...gatherOptions,
+    ...additionalParams
+  });
+  
+  gather.say({
+    voice: 'Polly.Amy',
+    language: 'en-US'
+  }, message);
+  
+  return gather;
+}
+
 export async function POST(request) {
   try {
     const formData = await request.formData();
@@ -43,12 +68,14 @@ export async function POST(request) {
     const leadId = formData.get('leadId');
     const leadName = formData.get('leadName');
     const speechResult = formData.get('SpeechResult');
+    const digits = formData.get('Digits');
     const retryCount = parseInt(formData.get('retryCount') || '0', 10);
     const action = formData.get('action');
     
     console.log('Voice webhook triggered:', {
       callSid, callStatus, taskId, leadId, leadName,
       hasSpeech: !!speechResult,
+      hasDigits: !!digits,
       retryCount,
       action
     });
@@ -60,10 +87,10 @@ export async function POST(request) {
     if (!callAgent && leadId && taskId) {
       try {
         callAgent = new AICallAgent(leadId, taskId);
+        await callAgent.initialize(); // Ensure agent is initialized
         activeCallAgents[callSid] = callAgent;
       } catch (error) {
         console.error('Error creating AI call agent:', error);
-        // Don't immediately transfer to human, try to continue with basic functionality
       }
     }
 
@@ -97,54 +124,29 @@ export async function POST(request) {
         lastResponse = retryResult.message;
       }
 
-      const gather = twiml.gather(gatherOptions);
-      gather.say({
-        voice: 'Polly.Amy',
-        language: 'en-US'
-      }, lastResponse);
+      createGather(twiml, lastResponse, {
+        action: `/api/twilio/voice?action=retry&retryCount=${retryCount + 1}`
+      });
 
-      // Add retry parameters to the redirect
-      const params = [];
-      params.push(['action', 'retry']);
-      params.push(['retryCount', (retryCount + 1).toString()]);
-      if (taskId) params.push(['taskId', taskId]);
-      if (leadId) params.push(['leadId', leadId]);
-      if (leadName) params.push(['leadName', leadName]);
-
-      const queryString = params
-        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-        .join('&');
-
-      twiml.redirect(`/api/twilio/voice?${queryString}`);
+      return new NextResponse(twiml.toString(), {
+        headers: { 'Content-Type': 'text/xml' }
+      });
     }
+
     // Handle initial greeting or no speech input
-    else if (!speechResult) {
-      // Initial greeting
-      const gather = twiml.gather(gatherOptions);
+    if (!speechResult && !digits) {
       const greeting = leadName 
         ? `Hello ${leadName}, I'm Maya from Prosparity. I'm calling to discuss how our AI-powered sales solution might help improve your business processes. Do you have a moment to talk?`
         : INITIAL_GREETING;
 
-      gather.say({ 
-        voice: 'Polly.Amy',
-        language: 'en-US' 
-      }, greeting);
+      createGather(twiml, greeting);
 
-      // Add a backup redirect for no input
-      const params = [];
-      params.push(['action', 'retry']);
-      if (taskId) params.push(['taskId', taskId]);
-      if (leadId) params.push(['leadId', leadId]);
-      if (leadName) params.push(['leadName', leadName]);
-
-      const queryString = params
-        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-        .join('&');
-
-      twiml.redirect(`/api/twilio/voice?${queryString}`);
+      return new NextResponse(twiml.toString(), {
+        headers: { 'Content-Type': 'text/xml' }
+      });
     }
+
     // Process speech input and continue conversation
-    else {
       const shouldEndCall = checkEndConversation(speechResult);
       
       if (shouldEndCall) {
@@ -170,27 +172,10 @@ export async function POST(request) {
           aiResponse = "I understand you're interested in learning more. Let me tell you about how our AI-powered sales solution can help improve your business processes.";
         }
 
-        // Continue conversation
-        const gather = twiml.gather(gatherOptions);
-        gather.say({
-          voice: 'Polly.Amy',
-          language: 'en-US'
-        }, aiResponse);
-
-        // Add a backup redirect for no input
-        const params = [];
-        params.push(['action', 'retry']);
-        params.push(['lastResponse', aiResponse]);
-        if (taskId) params.push(['taskId', taskId]);
-        if (leadId) params.push(['leadId', leadId]);
-        if (leadName) params.push(['leadName', leadName]);
-
-        const queryString = params
-          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-          .join('&');
-
-        twiml.redirect(`/api/twilio/voice?${queryString}`);
-      }
+      // Continue conversation with improved gather
+      createGather(twiml, aiResponse, {
+        action: `/api/twilio/voice?action=retry&retryCount=0`
+      });
     }
 
     return new NextResponse(twiml.toString(), {
@@ -207,11 +192,7 @@ export async function POST(request) {
     }, "I apologize for the brief interruption. Let me continue with our conversation about how our AI-powered sales solution can help your business.");
     
     // Add a gather to continue the conversation
-    const gather = twiml.gather(gatherOptions);
-    gather.say({
-      voice: 'Polly.Amy',
-      language: 'en-US'
-    }, "Could you tell me more about your current sales process?");
+    createGather(twiml, "Could you tell me more about your current sales process?");
     
     return new NextResponse(twiml.toString(), {
       headers: { 'Content-Type': 'text/xml' }

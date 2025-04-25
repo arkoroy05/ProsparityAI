@@ -27,20 +27,48 @@ ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_companies ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for companies table
-CREATE POLICY "Users can view their own companies"
-    ON public.companies
-    FOR SELECT
-    USING (auth.uid() = owner_id);
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'companies' AND policyname = 'Users can view their own companies'
+    ) THEN
+        CREATE POLICY "Users can view their own companies"
+            ON public.companies
+            FOR SELECT
+            USING (auth.uid() = owner_id);
+    END IF;
 
-CREATE POLICY "Users can create their own companies"
-    ON public.companies
-    FOR INSERT
-    WITH CHECK (auth.uid() = owner_id);
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'companies' AND policyname = 'Users can create their own companies'
+    ) THEN
+        CREATE POLICY "Users can create their own companies"
+            ON public.companies
+            FOR INSERT
+            WITH CHECK (auth.uid() = owner_id);
+    END IF;
 
-CREATE POLICY "Users can update their own companies"
-    ON public.companies
-    FOR UPDATE
-    USING (auth.uid() = owner_id);
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'companies' AND policyname = 'Users can update their own companies'
+    ) THEN
+        CREATE POLICY "Users can update their own companies"
+            ON public.companies
+            FOR UPDATE
+            USING (auth.uid() = owner_id);
+    END IF;
+
+    -- Add development policy for local testing
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'companies' AND policyname = 'Allow dev mode access'
+    ) THEN
+        CREATE POLICY "Allow dev mode access"
+            ON public.companies
+            USING (current_setting('app.environment', true) = 'development');
+    END IF;
+END $$;
 
 -- Create policies for user_companies table
 CREATE POLICY "Users can view their company memberships"

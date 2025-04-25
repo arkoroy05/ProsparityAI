@@ -17,14 +17,28 @@ export function CallInsights({ call }) {
 
   const fetchTranscript = async () => {
     try {
+      if (!call || !call.id) {
+        console.log('No call ID available');
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('call_transcripts')
         .select('*')
         .eq('call_id', call.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      setTranscript(data);
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 is the error code for "Results contain 0 rows"
+        throw error;
+      }
+      
+      if (data) {
+        setTranscript(data);
+      } else {
+        console.log('No transcript found for call:', call.id);
+      }
     } catch (error) {
       console.error('Error fetching transcript:', error);
       toast.error('Failed to load call transcript');

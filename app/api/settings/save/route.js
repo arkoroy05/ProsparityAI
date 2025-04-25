@@ -19,10 +19,11 @@ export async function POST(request) {
     const supabase = createServerActionClient({ cookies });
     
     // Parse the request body
-    let companyId;
+    let companyId, instructions;
     try {
       const body = await request.json();
       companyId = body.companyId;
+      instructions = body.instructions;
       
       if (!companyId) {
         return NextResponse.json({
@@ -31,7 +32,7 @@ export async function POST(request) {
         }, { status: 400 });
       }
       
-      console.log('Processing settings init for company:', companyId);
+      console.log('Saving settings for company:', companyId);
     } catch (parseError) {
       return handleApiError(parseError, 'Invalid request format', 400);
     }
@@ -49,34 +50,29 @@ export async function POST(request) {
       }
 
       if (!companies || companies.length === 0) {
-        // In development mode, try to create a dummy company
+        // In development mode, try to create the company first
         if (process.env.NODE_ENV === 'development') {
-          console.log('Development mode: Creating dummy company for ID:', companyId);
+          console.log('Development mode: Company not found, creating it first');
           
           try {
-            // Try to get authenticated user, but don't require it in development
+            // Get current user or use fallback ID
             let ownerId;
-            
             try {
               const { data, error: userError } = await supabase.auth.getUser();
-              
               if (!userError && data?.user?.id) {
                 ownerId = data.user.id;
-                console.log('Using authenticated user as owner:', ownerId);
               } else {
-                // Generate a development owner ID if no authenticated user
                 ownerId = '00000000-0000-0000-0000-000000000000';
-                console.log('No authenticated user found, using development owner ID');
               }
             } catch (authError) {
-              console.log('Auth error, using development owner ID:', authError);
+              console.warn('Auth error, using development ID:', authError);
               ownerId = '00000000-0000-0000-0000-000000000000';
             }
             
-            // In development mode, use direct SQL query to bypass RLS
+            // Try to create the company using RPC
             const { data: newCompany, error: createError } = await supabase.rpc(
               'create_development_company',
-              { 
+              {
                 company_id: companyId,
                 owner_id: ownerId,
                 company_name: 'Development Company',
@@ -86,14 +82,11 @@ export async function POST(request) {
             
             if (createError) {
               console.error('Failed to create development company:', createError);
-              
-              // Fallback to local storage mode
               return NextResponse.json({
-                success: true, // Return success with empty settings to trigger fallback
-                message: 'Using development fallback',
-                settings: { ai_instructions: '' },
-                fallback: true
-              });
+                success: false,
+                message: 'Company not found and could not create development company',
+                details: createError.message
+              }, { status: 404 });
             }
             
             console.log('Created development company:', newCompany);
@@ -113,44 +106,45 @@ export async function POST(request) {
           }, { status: 404 });
         }
       }
-      
-      console.log('Company found, checking for existing settings');
     } catch (companyError) {
       return handleApiError(companyError, 'Error verifying company', 500);
     }
 
-    // Use a transaction to safely check and create settings if needed
-    try {
-      // Check if this is development mode
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Development mode: Using direct RPC for settings');
-        // Use RPC to bypass RLS in development
-        const { data: settings, error: settingsError } = await supabase.rpc(
-          'init_company_settings',
-          { p_company_id: companyId }
+    // Try to save settings - check if in development mode
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        console.log('Development mode: Using RPC to save settings');
+        // Use the RPC to save settings
+        const { data: settings, error: rpcError } = await supabase.rpc(
+          'save_company_settings',
+          { 
+            p_company_id: companyId,
+            p_ai_instructions: instructions || ''
+          }
         );
         
-        if (settingsError) {
-          console.error('Failed to initialize settings via RPC:', settingsError);
+        if (rpcError) {
+          console.error('RPC error when saving settings:', rpcError);
+          // Try regular approach as fallback
+        } else {
           return NextResponse.json({
-            success: true, // Return success with empty settings to trigger fallback
-            message: 'Using development fallback',
-            settings: { ai_instructions: '' },
-            fallback: true
+            success: true,
+            message: 'Settings saved successfully via RPC',
+            instructions: instructions
           });
         }
-        
-        return NextResponse.json({
-          success: true,
-          message: 'Settings initialized successfully via RPC',
-          settings
-        });
+      } catch (rpcError) {
+        console.error('Error using RPC to save settings:', rpcError);
+        // Continue to regular approach as fallback
       }
-      
-      // Normal flow for production - First check if settings exist
+    }
+    
+    // Regular approach - update settings using normal query
+    try {
+      // First check if settings exist
       const { data: existingSettings, error: checkError } = await supabase
         .from('company_settings')
-        .select('id, ai_instructions')
+        .select('id')
         .eq('company_id', companyId)
         .maybeSingle();
 
@@ -158,50 +152,45 @@ export async function POST(request) {
         throw checkError;
       }
 
-      // If settings already exist, return them
+      let updateResult;
+      
       if (existingSettings?.id) {
-        console.log('Existing settings found, returning');
-        return NextResponse.json({
-          success: true,
-          message: 'Settings already exist',
-          settings: existingSettings
-        });
+        // Update existing settings
+        updateResult = await supabase
+          .from('company_settings')
+          .update({
+            ai_instructions: instructions || '',
+            updated_at: new Date().toISOString()
+          })
+          .eq('company_id', companyId)
+          .select();
+      } else {
+        // Create new settings
+        updateResult = await supabase
+          .from('company_settings')
+          .insert({
+            company_id: companyId,
+            ai_instructions: instructions || '',
+            call_settings: {},
+            email_settings: {},
+            notification_settings: {},
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select();
       }
-
-      console.log('No settings found, creating new settings record');
       
-      // Create new settings if they don't exist
-      const { data: newSettings, error: createError } = await supabase
-        .from('company_settings')
-        .insert({
-          company_id: companyId,
-          ai_instructions: '',
-          call_settings: {},
-          email_settings: {},
-          notification_settings: {},
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (createError) {
-        throw createError;
+      if (updateResult.error) {
+        throw updateResult.error;
       }
 
-      if (!newSettings) {
-        throw new Error('Failed to create settings - no data returned');
-      }
-
-      console.log('New settings created successfully');
-      
       return NextResponse.json({
         success: true,
-        message: 'Settings initialized successfully',
-        settings: newSettings
+        message: 'Settings saved successfully',
+        instructions: instructions
       });
     } catch (dbError) {
-      return handleApiError(dbError, 'Database operation failed', 500);
+      return handleApiError(dbError, 'Failed to save settings', 500);
     }
   } catch (unexpectedError) {
     return handleApiError(unexpectedError, 'Unexpected error occurred', 500);
