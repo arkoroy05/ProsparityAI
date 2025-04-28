@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
 
 // Helper function to handle errors consistently
 const handleApiError = (error, message, status = 500) => {
@@ -15,8 +14,11 @@ const handleApiError = (error, message, status = 500) => {
 
 export async function POST(request) {
   try {
-    // Create authenticated Supabase client
-    const supabase = createServerActionClient({ cookies });
+    // Create Supabase client directly for server component
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
     
     // Parse the request body
     let companyId;
@@ -40,7 +42,15 @@ export async function POST(request) {
     try {
       const { data: companies, error: companyError } = await supabase
         .from('companies')
-        .select('id, name, owner_id')
+        .select(`
+          id, 
+          name, 
+          owner_id,
+          user_companies (
+            user_id,
+            role
+          )
+        `)
         .eq('id', companyId)
         .limit(1);
 
@@ -48,7 +58,7 @@ export async function POST(request) {
         throw companyError;
       }
 
-      if (!companies || companies.length === 0) {
+      if (!companies || companies.length === 0 || !companies[0].user_companies?.length) {
         // In development mode, try to create a dummy company
         if (process.env.NODE_ENV === 'development') {
           console.log('Development mode: Creating dummy company for ID:', companyId);
@@ -206,4 +216,4 @@ export async function POST(request) {
   } catch (unexpectedError) {
     return handleApiError(unexpectedError, 'Unexpected error occurred', 500);
   }
-} 
+}
