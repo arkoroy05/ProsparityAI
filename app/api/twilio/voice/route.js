@@ -186,211 +186,161 @@ export async function POST(request) {
       try {
         callAgent = new AICallAgent(leadId, taskId);
         await callAgent.initialize(); // Ensure agent is initialized
+        if (!callAgent.isInitialized) {
+          throw new Error('AI agent failed to initialize properly');
+        }
         activeCallAgents[callSid] = callAgent;
-        console.log('AI call agent created and initialized');
+        console.log('AI call agent created and initialized successfully');
       } catch (error) {
         console.error('Error creating AI call agent:', error);
+        throw error; // Re-throw to handle in the main try-catch
       }
     }
 
     // Handle call ending or hangup
     if (callStatus === 'completed') {
-      console.log('Call completed, generating final insights');
       if (callAgent) {
-        // Generate insights at the end of the call
+        // Generate final insights
         await generateCallInsights(callSid, leadId, callAgent.conversationHistory);
         // Save final transcript
         await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
-        // Clean up agent
+        // Clean up
         delete activeCallAgents[callSid];
       }
-      return new NextResponse('Call completed', { status: 200 });
-    }
-
-    // Handle initial greeting or no speech input
-    if (!speechResult && !digits && !action) {
-      console.log('Delivering initial greeting');
-      
-      let greeting;
-      if (callAgent) {
-        // Get personalized greeting from AI agent
-        greeting = await callAgent.getInitialGreeting(leadName);
-      } else {
-        // Fallback greeting if no agent
-        greeting = leadName 
-          ? `Hello ${leadName}, I'm calling from Prosparity. I'm calling to discuss how our AI-powered sales solution might help improve your business processes. Do you have a moment to talk?`
-          : `Hello, I'm calling from Prosparity. I'm calling about improving your business processes. Do you have a moment to talk?`;
-      }
-
-      // Track AI message in conversation history
-      if (callAgent) {
-        callAgent.trackAIResponse(greeting);
-        // Save initial greeting to transcript
-        await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
-      }
-
-      createGather(twiml, greeting);
-
-      return new NextResponse(twiml.toString(), {
+      return new NextResponse(new VoiceResponse().toString(), {
         headers: { 'Content-Type': 'text/xml' }
       });
     }
 
-    // Handle speech input
-    if (speechResult) {
-      console.log('Processing speech input:', speechResult);
-
-      // Check if we should end the call
-      const shouldEndCall = checkEndConversation(speechResult);
-      if (shouldEndCall) {
-        console.log('End conversation detected, hanging up');
-        const endMessage = "Thank you for your time. Have a great day!";
-        
-        twiml.say({
-          voice: 'Polly.Amy',
-          language: 'en-US'
-        }, endMessage);
-        
-        twiml.hangup();
-        
-        // Add final response to conversation history
-        if (callAgent) {
-          callAgent.conversationHistory.push({
-            role: 'lead',
-            text: speechResult,
-            timestamp: new Date().toISOString()
-          });
-          
-          callAgent.trackAIResponse(endMessage);
-          
-          // Generate insights at the end of the call
-          await generateCallInsights(callSid, leadId, callAgent.conversationHistory);
-          
-          // Save final transcript
-          await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
-          
-          // Cleanup call agent
-          delete activeCallAgents[callSid];
+    // Initial greeting for new calls
+    if (!speechResult && !digits && retryCount === 0) {
+      try {
+        if (!callAgent) {
+          throw new Error('No AI agent available for call');
         }
 
+        // Get personalized greeting from AI agent
+        const greeting = await callAgent.getInitialGreeting(leadName);
+        if (!greeting) {
+          throw new Error('Failed to generate AI greeting');
+        }
+
+        console.log('Generated AI greeting:', greeting);
+        
+        // Create gather with greeting
+        createGather(twiml, greeting, {
+          action: '/api/twilio/voice?retryCount=0'
+        });
+        
+        return new NextResponse(twiml.toString(), {
+          headers: { 'Content-Type': 'text/xml' }
+        });
+      } catch (error) {
+        console.error('Error in initial greeting:', error);
+        // Use a generic greeting as absolute fallback
+        const fallbackGreeting = leadName 
+          ? `Hello ${leadName}, I'm calling from Prosparity about improving your business processes. Do you have a moment to talk?`
+          : `Hello, I'm calling from Prosparity about improving your business processes. Do you have a moment to talk?`;
+          
+        createGather(twiml, fallbackGreeting, {
+          action: '/api/twilio/voice?retryCount=0'
+        });
+        
         return new NextResponse(twiml.toString(), {
           headers: { 'Content-Type': 'text/xml' }
         });
       }
+    }
 
-      // Process speech with AI agent
-      let aiResponse;
+    // Handle user input
+    if (speechResult || digits) {
       try {
-        console.log('Generating AI response with call agent');
-        if (callAgent) {
-          // Add user's speech to conversation history
-          if (!callAgent.conversationHistory.some(entry => 
-              entry.role === 'lead' && entry.text === speechResult)) {
-            callAgent.conversationHistory.push({
-              role: 'lead',
-              text: speechResult,
-              timestamp: new Date().toISOString()
-            });
-          }
-          
-          // Get AI response
-          aiResponse = await callAgent.processSpeech(speechResult);
-          
-          // Save ongoing conversation transcript
-          await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
-        } else {
-          aiResponse = "I understand you're interested in learning more. Let me tell you about how our AI-powered sales solution can help improve your business processes.";
+        if (!callAgent) {
+          throw new Error('No AI agent available for call');
         }
+
+        // Process the input through AI agent
+        const userInput = speechResult || digits;
+        console.log('Processing user input:', userInput);
         
-        console.log('AI response generated:', aiResponse);
+        // Check for conversation end signals
+        if (checkEndConversation(userInput)) {
+          // Generate final insights before ending
+          await generateCallInsights(callSid, leadId, callAgent.conversationHistory);
+          await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
+          
+          // Say goodbye
+          twiml.say({
+            voice: 'Polly.Amy',
+            language: 'en-US'
+          }, 'Thank you for your time. Have a great day!');
+          
+          // Clean up
+          delete activeCallAgents[callSid];
+          
+          return new NextResponse(twiml.toString(), {
+            headers: { 'Content-Type': 'text/xml' }
+          });
+        }
+
+        // Get AI response
+        const aiResponse = await callAgent.processSpeech(userInput);
+        if (!aiResponse) {
+          throw new Error('Failed to get AI response');
+        }
+
+        console.log('Generated AI response:', aiResponse);
+        
+        // Create gather with AI response
+        createGather(twiml, aiResponse, {
+          action: `/api/twilio/voice?retryCount=0`
+        });
+        
+        // Save conversation progress
+        await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
+        
+        return new NextResponse(twiml.toString(), {
+          headers: { 'Content-Type': 'text/xml' }
+        });
       } catch (error) {
-        console.error('Error processing speech:', error);
-        aiResponse = "I apologize for the confusion. Let me connect you with one of our representatives who can better assist you.";
+        console.error('Error processing user input:', error);
+        // Fallback response
+        const fallbackResponse = "I apologize, but I'm having trouble understanding. Could you please repeat that?";
+        
+        createGather(twiml, fallbackResponse, {
+          action: `/api/twilio/voice?retryCount=${retryCount + 1}`
+        });
+        
+        return new NextResponse(twiml.toString(), {
+          headers: { 'Content-Type': 'text/xml' }
+        });
       }
+    }
 
-      // Continue conversation with gather
-      createGather(twiml, aiResponse, {
-        action: `/api/twilio/voice?action=retry&retryCount=0`
-      });
-
+    // Handle no input after timeout
+    if (retryCount >= MAX_RETRIES) {
+      twiml.say({
+        voice: 'Polly.Amy',
+        language: 'en-US'
+      }, "I haven't heard from you. I'll try calling back at a better time. Have a great day!");
+      
+      if (callAgent) {
+        // Save conversation state
+        await generateCallInsights(callSid, leadId, callAgent.conversationHistory);
+        await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
+        delete activeCallAgents[callSid];
+      }
+      
       return new NextResponse(twiml.toString(), {
         headers: { 'Content-Type': 'text/xml' }
       });
     }
 
-    // Handle silence or no input
-    console.log('Handling no input scenario, retry count:', retryCount);
-    if (retryCount >= MAX_RETRIES) {
-      console.log('Max retries reached, ending call');
-      const endMessage = "I apologize, but I'm having trouble hearing you. Let me try to reach you at a better time. Have a great day!";
-      
-      twiml.say({
-        voice: 'Polly.Amy',
-        language: 'en-US'
-      }, endMessage);
-      
-      twiml.hangup();
-      
-      // Add final message to conversation history
-      if (callAgent) {
-        callAgent.trackAIResponse(endMessage);
-        
-        // Generate insights at the end of the call
-        await generateCallInsights(callSid, leadId, callAgent.conversationHistory);
-        
-        // Save final transcript
-        await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
-      }
-      
-      // Clean up call agent
-      if (callSid && activeCallAgents[callSid]) {
-        delete activeCallAgents[callSid];
-      }
-    } else {
-      // Get the last response from the agent if available
-      let retryMessage = "I'm sorry, I didn't catch that. Could you please repeat?";
-      if (callAgent) {
-        const retryResult = await callAgent.handleRetry();
-        if (retryResult?.shouldEnd) {
-          // Call should end
-          twiml.say({
-            voice: 'Polly.Amy',
-            language: 'en-US'
-          }, retryResult.message);
-          
-          // Add final message to conversation history
-          callAgent.trackAIResponse(retryResult.message);
-          
-          // Generate insights at the end of the call
-          await generateCallInsights(callSid, leadId, callAgent.conversationHistory);
-          
-          // Save final transcript
-          await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
-          
-          twiml.hangup();
-          
-          // Cleanup agent
-          delete activeCallAgents[callSid];
-        } else {
-          retryMessage = retryResult?.message || retryMessage;
-          
-          // Add retry message to conversation history
-          callAgent.trackAIResponse(retryMessage);
-          
-          // Save ongoing conversation transcript
-          await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
-          
-          createGather(twiml, retryMessage, {
-            action: `/api/twilio/voice?action=retry&retryCount=${retryCount + 1}`
-          });
-        }
-      } else {
-        createGather(twiml, retryMessage, {
-          action: `/api/twilio/voice?action=retry&retryCount=${retryCount + 1}`
-        });
-      }
-    }
-
+    // Prompt for input again
+    createGather(twiml, "I didn't catch that. Could you please respond?", {
+      action: `/api/twilio/voice?retryCount=${retryCount + 1}`
+    });
+    
     return new NextResponse(twiml.toString(), {
       headers: { 'Content-Type': 'text/xml' }
     });
