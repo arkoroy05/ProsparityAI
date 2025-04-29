@@ -7,30 +7,52 @@ export { Avatar, AvatarImage, AvatarFallback } from './avatar';
 export { Input } from './input';
 export { Textarea } from './textarea';
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+} from './table';
+export { Skeleton } from './skeleton';
+export {
+  Toast,
+  ToastProvider,
+  ToastViewport,
+  ToastTitle,
+  ToastDescription,
+  ToastClose,
+  ToastAction,
+} from './toast';
+export { useToast, toast } from './use-toast';
+export { Alert, AlertTitle, AlertDescription } from './alert';
+export { Popover, PopoverTrigger, PopoverContent } from './popover';
 
-// These components don't exist yet, so we're creating simple implementations
-export const Box = ({ children, ...props }) => {
-  return <div {...props}>{children}</div>;
+// Utility components using Tailwind classes
+export const Box = ({ children, className, ...props }) => {
+  return <div className={className} {...props}>{children}</div>;
 };
 
-export const Text = ({ children, ...props }) => {
-  return <p {...props}>{children}</p>;
+export const Text = ({ children, className, ...props }) => {
+  return <p className={cn("text-sm text-gray-400", className)} {...props}>{children}</p>;
 };
 
-export const Heading = ({ as = 'h2', children, ...props }) => {
-  const Component = as;
-  return <Component {...props}>{children}</Component>;
+export const Heading = ({ as: Component = 'h2', className, children, ...props }) => {
+  return <Component className={cn("font-semibold tracking-tight", className)} {...props}>{children}</Component>;
 };
 
-export const SimpleGrid = ({ children, columns, spacing, ...props }) => {
+export const SimpleGrid = ({ children, columns = 1, className, ...props }) => {
   return (
-    <div 
-      style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${columns?.base || 1}, 1fr)`,
-        gap: typeof spacing === 'number' ? `${spacing * 0.25}rem` : spacing || '1rem',
-        ...props.style
-      }}
+    <div
+      className={cn(
+        "grid",
+        `grid-cols-${columns}`,
+        "gap-4",
+        className
+      )}
       {...props}
     >
       {children}
@@ -38,18 +60,13 @@ export const SimpleGrid = ({ children, columns, spacing, ...props }) => {
   );
 };
 
-export const Container = ({ children, maxW, ...props }) => {
+export const Container = ({ children, className, ...props }) => {
   return (
-    <div 
-      style={{
-        width: '100%',
-        maxWidth: maxW === 'container.xl' ? '1200px' : (maxW || '1200px'),
-        marginLeft: 'auto',
-        marginRight: 'auto',
-        paddingLeft: '1rem',
-        paddingRight: '1rem',
-        ...props.style
-      }}
+    <div
+      className={cn(
+        "w-full mx-auto px-4 max-w-7xl",
+        className
+      )}
       {...props}
     >
       {children}
@@ -57,198 +74,14 @@ export const Container = ({ children, maxW, ...props }) => {
   );
 };
 
-export const Spinner = ({ size = 'md', ...props }) => {
-  const sizeMap = {
-    sm: '1rem',
-    md: '2rem',
-    lg: '3rem',
-    xl: '4rem'
-  };
-  
+export const Spinner = ({ className, ...props }) => {
   return (
-    <div 
-      style={{
-        border: '4px solid rgba(0, 0, 0, 0.1)',
-        borderLeftColor: '#09f',
-        borderRadius: '50%',
-        width: sizeMap[size] || size,
-        height: sizeMap[size] || size,
-        animation: 'spin 1s linear infinite',
-        ...props.style
-      }}
+    <div
+      className={cn(
+        "animate-spin rounded-full border-4 border-gray-800 border-l-purple-500",
+        className
+      )}
       {...props}
     />
   );
 };
-
-export const Alert = ({ status, children, ...props }) => {
-  const colors = {
-    error: '#f56565',
-    success: '#48bb78',
-    warning: '#ed8936',
-    info: '#4299e1'
-  };
-  
-  return (
-    <div 
-      style={{
-        padding: '0.75rem 1rem',
-        borderRadius: '0.375rem',
-        backgroundColor: colors[status] ? `${colors[status]}20` : '#4299e120',
-        color: colors[status] || '#4299e1',
-        display: 'flex',
-        alignItems: 'center',
-        ...props.style
-      }}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-};
-
-export const AlertIcon = (props) => {
-  return (
-    <span 
-      style={{
-        marginRight: '0.5rem',
-        ...props.style
-      }}
-      {...props}
-    >
-      ⚠️
-    </span>
-  );
-};
-
-export const Stack = ({ children, spacing, ...props }) => {
-  return (
-    <div 
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: typeof spacing === 'number' ? `${spacing * 0.25}rem` : spacing || '0.5rem',
-        ...props.style
-      }}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-};
-
-export const Flex = ({ children, ...props }) => {
-  return (
-    <div 
-      style={{
-        display: 'flex',
-        ...props.style
-      }}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-};
-
-export const Divider = (props) => {
-  return (
-    <hr 
-      style={{
-        borderTop: '1px solid #e2e8f0',
-        margin: '1rem 0',
-        ...props.style
-      }}
-      {...props}
-    />
-  );
-};
-
-export const FormControl = ({ children, ...props }) => {
-  return (
-    <div 
-      style={{
-        marginBottom: '1rem',
-        ...props.style
-      }}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-};
-
-export const FormLabel = ({ children, ...props }) => {
-  return (
-    <label 
-      style={{
-        fontWeight: '500',
-        marginBottom: '0.25rem',
-        display: 'block',
-        ...props.style
-      }}
-      {...props}
-    >
-      {children}
-    </label>
-  );
-};
-
-export const IconButton = ({ icon, ...props }) => {
-  return (
-    <button
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        ...props.style
-      }}
-      {...props}
-    >
-      {icon}
-    </button>
-  );
-};
-
-export const Tag = ({ children, ...props }) => {
-  return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        padding: '0.25rem 0.5rem',
-        borderRadius: '0.375rem',
-        fontSize: '0.875rem',
-        fontWeight: '500',
-        ...props.style
-      }}
-      {...props}
-    >
-      {children}
-    </span>
-  );
-};
-
-export const HStack = ({ children, spacing, ...props }) => {
-  return (
-    <div 
-      style={{
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: typeof spacing === 'number' ? `${spacing * 0.25}rem` : spacing || '0.5rem',
-        ...props.style
-      }}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-};
-
-// Mock useToast hook
-export function useToast() {
-  return ({ title, description, status, duration, isClosable }) => {
-    console.log(`Toast: ${title} - ${description}`);
-  };
-} 

@@ -5,9 +5,6 @@ import { AICallAgent, activeCallAgents } from '@/lib/ai-call-agent';
 
 const VoiceResponse = twilio.twiml.VoiceResponse;
 
-// Initial greeting for the AI agent
-const INITIAL_GREETING = "Hello, I'm Maya from Prosparity. I'm calling about improving your business processes. Do you have a moment to talk?";
-
 // Maximum number of retries for no-input scenarios
 const MAX_RETRIES = 2;
 
@@ -59,6 +56,106 @@ function createGather(twiml, message, additionalParams = {}) {
   return gather;
 }
 
+// Helper function to save conversation transcript
+async function saveCallTranscript(callSid, leadId, taskId, conversationHistory) {
+  try {
+    if (!callSid || !leadId) return;
+
+    // Format transcript for storage
+    const transcript = conversationHistory.map(msg => 
+      `${msg.role.toUpperCase()} [${new Date(msg.timestamp).toLocaleTimeString()}]: ${msg.text}`
+    ).join('\n\n');
+
+    // Check if call log exists
+    const { data: existingLog } = await supabase
+      .from('call_logs')
+      .select('id, metadata')
+      .eq('call_sid', callSid)
+      .single();
+
+    if (existingLog) {
+      // Update existing log
+      await supabase
+        .from('call_logs')
+        .update({
+          metadata: {
+            ...(existingLog.metadata || {}),
+            transcript: transcript,
+            conversation_history: conversationHistory
+          }
+        })
+        .eq('id', existingLog.id);
+    } else {
+      // Create new log
+      await supabase
+        .from('call_logs')
+        .insert({
+          call_sid: callSid,
+          lead_id: leadId,
+          task_id: taskId,
+          status: 'in-progress',
+          metadata: {
+            transcript: transcript,
+            conversation_history: conversationHistory
+          }
+        });
+    }
+  } catch (error) {
+    console.error('Error saving call transcript:', error);
+  }
+}
+
+// Helper function to generate and save call insights
+async function generateCallInsights(callSid, leadId, conversationHistory) {
+  try {
+    if (!callSid || !leadId || !conversationHistory || conversationHistory.length < 2) return;
+
+    // Get the AI agent for this call
+    const callAgent = activeCallAgents[callSid];
+    if (!callAgent) return;
+    
+    // Generate insights
+    const insights = await callAgent.generateInsights(conversationHistory);
+    
+    // Save insights to call log
+    const { data: existingLog } = await supabase
+      .from('call_logs')
+      .select('id, metadata')
+      .eq('call_sid', callSid)
+      .single();
+      
+    if (existingLog) {
+      await supabase
+        .from('call_logs')
+        .update({
+          metadata: {
+            ...(existingLog.metadata || {}),
+            insights: insights
+          }
+        })
+        .eq('id', existingLog.id);
+    }
+    
+    // Update lead with insights
+    if (insights.leadClassification) {
+      await supabase
+        .from('leads')
+        .update({
+          metadata: {
+            classification: insights.leadClassification,
+            lastCallInsights: insights
+          }
+        })
+        .eq('id', leadId);
+    }
+    
+    return insights;
+  } catch (error) {
+    console.error('Error generating call insights:', error);
+    return null;
+  }
+}
+
 export async function POST(request) {
   try {
     const formData = await request.formData();
@@ -96,12 +193,41 @@ export async function POST(request) {
       }
     }
 
+    // Handle call ending or hangup
+    if (callStatus === 'completed') {
+      console.log('Call completed, generating final insights');
+      if (callAgent) {
+        // Generate insights at the end of the call
+        await generateCallInsights(callSid, leadId, callAgent.conversationHistory);
+        // Save final transcript
+        await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
+        // Clean up agent
+        delete activeCallAgents[callSid];
+      }
+      return new NextResponse('Call completed', { status: 200 });
+    }
+
     // Handle initial greeting or no speech input
-    if (!speechResult && !digits) {
+    if (!speechResult && !digits && !action) {
       console.log('Delivering initial greeting');
-      const greeting = leadName 
-        ? `Hello ${leadName}, I'm Maya from Prosparity. I'm calling to discuss how our AI-powered sales solution might help improve your business processes. Do you have a moment to talk?`
-        : INITIAL_GREETING;
+      
+      let greeting;
+      if (callAgent) {
+        // Get personalized greeting from AI agent
+        greeting = await callAgent.getInitialGreeting(leadName);
+      } else {
+        // Fallback greeting if no agent
+        greeting = leadName 
+          ? `Hello ${leadName}, I'm calling from Prosparity. I'm calling to discuss how our AI-powered sales solution might help improve your business processes. Do you have a moment to talk?`
+          : `Hello, I'm calling from Prosparity. I'm calling about improving your business processes. Do you have a moment to talk?`;
+      }
+
+      // Track AI message in conversation history
+      if (callAgent) {
+        callAgent.trackAIResponse(greeting);
+        // Save initial greeting to transcript
+        await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
+      }
 
       createGather(twiml, greeting);
 
@@ -118,16 +244,32 @@ export async function POST(request) {
       const shouldEndCall = checkEndConversation(speechResult);
       if (shouldEndCall) {
         console.log('End conversation detected, hanging up');
+        const endMessage = "Thank you for your time. Have a great day!";
+        
         twiml.say({
           voice: 'Polly.Amy',
           language: 'en-US'
-        }, "Thank you for your time. Have a great day!");
+        }, endMessage);
         
         twiml.hangup();
         
-        // Cleanup call agent
-        if (callSid && activeCallAgents[callSid]) {
-          console.log('Cleaning up call agent for:', callSid);
+        // Add final response to conversation history
+        if (callAgent) {
+          callAgent.conversationHistory.push({
+            role: 'lead',
+            text: speechResult,
+            timestamp: new Date().toISOString()
+          });
+          
+          callAgent.trackAIResponse(endMessage);
+          
+          // Generate insights at the end of the call
+          await generateCallInsights(callSid, leadId, callAgent.conversationHistory);
+          
+          // Save final transcript
+          await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
+          
+          // Cleanup call agent
           delete activeCallAgents[callSid];
         }
 
@@ -140,9 +282,25 @@ export async function POST(request) {
       let aiResponse;
       try {
         console.log('Generating AI response with call agent');
-        aiResponse = callAgent 
-          ? await callAgent.processSpeech(speechResult)
-          : "I understand you're interested in learning more. Let me tell you about how our AI-powered sales solution can help improve your business processes.";
+        if (callAgent) {
+          // Add user's speech to conversation history
+          if (!callAgent.conversationHistory.some(entry => 
+              entry.role === 'lead' && entry.text === speechResult)) {
+            callAgent.conversationHistory.push({
+              role: 'lead',
+              text: speechResult,
+              timestamp: new Date().toISOString()
+            });
+          }
+          
+          // Get AI response
+          aiResponse = await callAgent.processSpeech(speechResult);
+          
+          // Save ongoing conversation transcript
+          await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
+        } else {
+          aiResponse = "I understand you're interested in learning more. Let me tell you about how our AI-powered sales solution can help improve your business processes.";
+        }
         
         console.log('AI response generated:', aiResponse);
       } catch (error) {
@@ -164,11 +322,25 @@ export async function POST(request) {
     console.log('Handling no input scenario, retry count:', retryCount);
     if (retryCount >= MAX_RETRIES) {
       console.log('Max retries reached, ending call');
+      const endMessage = "I apologize, but I'm having trouble hearing you. Let me try to reach you at a better time. Have a great day!";
+      
       twiml.say({
         voice: 'Polly.Amy',
         language: 'en-US'
-      }, "I apologize, but I'm having trouble hearing you. Let me try to reach you at a better time. Have a great day!");
+      }, endMessage);
+      
       twiml.hangup();
+      
+      // Add final message to conversation history
+      if (callAgent) {
+        callAgent.trackAIResponse(endMessage);
+        
+        // Generate insights at the end of the call
+        await generateCallInsights(callSid, leadId, callAgent.conversationHistory);
+        
+        // Save final transcript
+        await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
+      }
       
       // Clean up call agent
       if (callSid && activeCallAgents[callSid]) {
@@ -179,20 +351,44 @@ export async function POST(request) {
       let retryMessage = "I'm sorry, I didn't catch that. Could you please repeat?";
       if (callAgent) {
         const retryResult = await callAgent.handleRetry();
-        if (retryResult.shouldEnd) {
+        if (retryResult?.shouldEnd) {
+          // Call should end
           twiml.say({
             voice: 'Polly.Amy',
             language: 'en-US'
           }, retryResult.message);
+          
+          // Add final message to conversation history
+          callAgent.trackAIResponse(retryResult.message);
+          
+          // Generate insights at the end of the call
+          await generateCallInsights(callSid, leadId, callAgent.conversationHistory);
+          
+          // Save final transcript
+          await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
+          
           twiml.hangup();
+          
+          // Cleanup agent
+          delete activeCallAgents[callSid];
         } else {
-          retryMessage = retryResult.message;
+          retryMessage = retryResult?.message || retryMessage;
+          
+          // Add retry message to conversation history
+          callAgent.trackAIResponse(retryMessage);
+          
+          // Save ongoing conversation transcript
+          await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
+          
+          createGather(twiml, retryMessage, {
+            action: `/api/twilio/voice?action=retry&retryCount=${retryCount + 1}`
+          });
         }
+      } else {
+        createGather(twiml, retryMessage, {
+          action: `/api/twilio/voice?action=retry&retryCount=${retryCount + 1}`
+        });
       }
-
-      createGather(twiml, retryMessage, {
-        action: `/api/twilio/voice?action=retry&retryCount=${retryCount + 1}`
-      });
     }
 
     return new NextResponse(twiml.toString(), {
