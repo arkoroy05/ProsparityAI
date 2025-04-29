@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Alert } from '@/components/ui/alert';
 import { createSupabaseClient } from '@/lib/supabase-browser';
 import { CallInsights } from '@/components/calls/CallInsights';
 import { toast } from 'sonner';
 import { AICallService } from '@/lib/ai-call-service';
-import { Loader2, TrendingUp, Users, PhoneCall, Activity } from 'lucide-react';
-import { Alert, AlertIcon } from '@/components/ui';
+import { Loader2, TrendingUp, Users, PhoneCall, Activity, AlertCircle, Info } from 'lucide-react';
 
 export function CallAnalytics({ company }) {
   const [data, setData] = useState(null);
@@ -206,8 +206,8 @@ export function CallAnalytics({ company }) {
 
   if (error) {
     return (
-      <Alert status="error" variant="left-accent">
-        <AlertIcon />
+      <Alert variant="destructive" className="flex gap-2">
+        <AlertCircle className="h-4 w-4" />
         Error loading call analytics: {error}
       </Alert>
     );
@@ -215,8 +215,8 @@ export function CallAnalytics({ company }) {
 
   if (!data || data.length === 0) {
     return (
-      <Alert status="info" variant="left-accent">
-        <AlertIcon />
+      <Alert variant="default" className="flex gap-2">
+        <Info className="h-4 w-4" />
         No call data available yet. Start making calls to see analytics here.
       </Alert>
     );
@@ -340,4 +340,4 @@ export function CallAnalytics({ company }) {
       </div>
     </div>
   );
-} 
+}
