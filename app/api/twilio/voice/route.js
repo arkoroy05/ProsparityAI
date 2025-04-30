@@ -168,6 +168,18 @@ export async function POST(request) {
     const digits = formData.get('Digits');
     const retryCount = parseInt(formData.get('retryCount') || '0', 10);
     const action = formData.get('action');
+
+    // If this is the first webhook for the call, these params might be in the URL
+    if (!taskId || !leadId) {
+      const url = new URL(request.url);
+      const urlTaskId = url.searchParams.get('taskId');
+      const urlLeadId = url.searchParams.get('leadId');
+      const urlLeadName = url.searchParams.get('leadName');
+      
+      if (urlTaskId) formData.set('taskId', urlTaskId);
+      if (urlLeadId) formData.set('leadId', urlLeadId);
+      if (urlLeadName) formData.set('leadName', urlLeadName);
+    }
     
     console.log('Voice webhook triggered:', {
       callSid, callStatus, taskId, leadId, leadName,
@@ -177,59 +189,71 @@ export async function POST(request) {
       action
     });
 
+    // Create new TwiML response
     const twiml = new VoiceResponse();
 
-    // Get or create AI call agent for this call
-    let callAgent = activeCallAgents[callSid];
-    if (!callAgent && leadId && taskId) {
-      console.log('Creating new AI call agent for:', { leadId, taskId });
-      try {
-        callAgent = new AICallAgent(leadId, taskId);
-        await callAgent.initialize(); // Ensure agent is initialized
-        if (!callAgent.isInitialized) {
-          throw new Error('AI agent failed to initialize properly');
-        }
-        activeCallAgents[callSid] = callAgent;
-        console.log('AI call agent created and initialized successfully');
-      } catch (error) {
-        console.error('Error creating AI call agent:', error);
-        throw error; // Re-throw to handle in the main try-catch
-      }
-    }
-
-    // Handle call ending or hangup
-    if (callStatus === 'completed') {
+    // Handle call ending
+    if (callStatus === 'completed' || callStatus === 'failed') {
       if (callAgent) {
-        // Generate final insights
         await generateCallInsights(callSid, leadId, callAgent.conversationHistory);
-        // Save final transcript
         await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
-        // Clean up
         delete activeCallAgents[callSid];
       }
-      return new NextResponse(new VoiceResponse().toString(), {
+      return new NextResponse(twiml.toString(), {
         headers: { 'Content-Type': 'text/xml' }
       });
     }
 
-    // Initial greeting for new calls
-    if (!speechResult && !digits && retryCount === 0) {
+    // Get or create AI call agent
+    let callAgent = activeCallAgents[callSid];
+    if (!callAgent) {
+      // Only create agent if we have the required parameters
+      if (leadId && taskId) {
+        console.log('Creating new AI call agent for:', { leadId, taskId });
+        try {
+          callAgent = new AICallAgent(leadId, taskId);
+          await callAgent.initialize();
+          if (!callAgent.isInitialized) {
+            throw new Error('AI agent failed to initialize properly');
+          }
+          activeCallAgents[callSid] = callAgent;
+          console.log('AI call agent created and initialized successfully');
+        } catch (error) {
+          console.error('Error creating AI call agent:', error);
+          // Use fallback instead of throwing
+          const fallbackMessage = "I apologize, but I'm having trouble connecting. Let me have a representative call you back.";
+          twiml.say({
+            voice: 'Polly.Amy',
+            language: 'en-US'
+          }, fallbackMessage);
+          twiml.hangup();
+          return new NextResponse(twiml.toString(), {
+            headers: { 'Content-Type': 'text/xml' }
+          });
+        }
+      }
+    }
+
+    // Initial greeting for new calls or when no input received yet
+    if (!speechResult && !digits) {
       try {
-        if (!callAgent) {
-          throw new Error('No AI agent available for call');
+        let greeting;
+        if (callAgent) {
+          greeting = await callAgent.getInitialGreeting(leadName);
         }
-
-        // Get personalized greeting from AI agent
-        const greeting = await callAgent.getInitialGreeting(leadName);
+        
+        // Use fallback greeting if AI fails
         if (!greeting) {
-          throw new Error('Failed to generate AI greeting');
+          greeting = leadName 
+            ? `Hello ${leadName}, I'm calling from Prosparity about improving your business processes. Do you have a moment to talk?`
+            : `Hello, I'm calling from Prosparity about improving your business processes. Do you have a moment to talk?`;
         }
 
-        console.log('Generated AI greeting:', greeting);
+        console.log('Using greeting:', greeting);
         
         // Create gather with greeting
         createGather(twiml, greeting, {
-          action: '/api/twilio/voice?retryCount=0'
+          action: `/api/twilio/voice?retryCount=0&taskId=${taskId}&leadId=${leadId}&leadName=${leadName || ''}`
         });
         
         return new NextResponse(twiml.toString(), {
@@ -237,13 +261,13 @@ export async function POST(request) {
         });
       } catch (error) {
         console.error('Error in initial greeting:', error);
-        // Use a generic greeting as absolute fallback
+        // Use generic greeting as absolute fallback
         const fallbackGreeting = leadName 
           ? `Hello ${leadName}, I'm calling from Prosparity about improving your business processes. Do you have a moment to talk?`
           : `Hello, I'm calling from Prosparity about improving your business processes. Do you have a moment to talk?`;
           
         createGather(twiml, fallbackGreeting, {
-          action: '/api/twilio/voice?retryCount=0'
+          action: `/api/twilio/voice?retryCount=0&taskId=${taskId}&leadId=${leadId}&leadName=${leadName || ''}`
         });
         
         return new NextResponse(twiml.toString(), {
