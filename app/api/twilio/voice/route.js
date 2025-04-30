@@ -237,17 +237,18 @@ export async function POST(request) {
     // Initial greeting for new calls or when no input received yet
     if (!speechResult && !digits) {
       try {
-        let greeting;
-        if (callAgent) {
-          greeting = await callAgent.getInitialGreeting(leadName);
+        if (!callAgent) {
+          throw new Error('AI agent not available for call');
         }
+
+        console.log('Attempting to generate AI greeting...');
+        const greeting = await callAgent.getInitialGreeting(leadName);
         
-        // Use fallback greeting if AI fails
         if (!greeting) {
-          greeting = leadName 
-            ? `Hello ${leadName}, I'm calling from Prosparity about improving your business processes. Do you have a moment to talk?`
-            : `Hello, I'm calling from Prosparity about improving your business processes. Do you have a moment to talk?`;
+          throw new Error('AI failed to generate greeting');
         }
+
+        console.log('Successfully generated AI greeting:', greeting);
 
         console.log('Using greeting:', greeting);
         
@@ -289,15 +290,25 @@ export async function POST(request) {
         
         // Check for conversation end signals
         if (checkEndConversation(userInput)) {
+          console.log('Conversation end signal detected:', userInput);
+          
           // Generate final insights before ending
-          await generateCallInsights(callSid, leadId, callAgent.conversationHistory);
+          const insights = await generateCallInsights(callSid, leadId, callAgent.conversationHistory);
           await saveCallTranscript(callSid, leadId, taskId, callAgent.conversationHistory);
+          
+          // Generate a personalized goodbye based on the conversation
+          let goodbyeMessage = 'Thank you for your time. Have a great day!';
+          if (insights?.leadClassification?.interest === 'high') {
+            goodbyeMessage = "Thank you for your time! I'll have our team reach out with those additional details right away. Have a great day!";
+          } else if (insights?.leadClassification?.needsFollowUp) {
+            goodbyeMessage = "Thank you for chatting with me today. We'll follow up at a better time. Have a great day!";
+          }
           
           // Say goodbye
           twiml.say({
             voice: 'Polly.Amy',
             language: 'en-US'
-          }, 'Thank you for your time. Have a great day!');
+          }, goodbyeMessage);
           
           // Clean up
           delete activeCallAgents[callSid];
@@ -307,17 +318,34 @@ export async function POST(request) {
           });
         }
 
-        // Get AI response
-        const aiResponse = await callAgent.processSpeech(userInput);
-        if (!aiResponse) {
-          throw new Error('Failed to get AI response');
+        // Get AI response with multiple retries if needed
+        let aiResponse;
+        let retries = 0;
+        const maxRetries = 2;
+        
+        while (!aiResponse && retries < maxRetries) {
+          try {
+            console.log(`Attempt ${retries + 1} to get AI response...`);
+            aiResponse = await callAgent.processSpeech(userInput);
+            if (!aiResponse) {
+              throw new Error('Empty AI response');
+            }
+          } catch (responseError) {
+            console.error(`Attempt ${retries + 1} failed:`, responseError);
+            retries++;
+            if (retries >= maxRetries) {
+              throw responseError;
+            }
+            // Short delay before retry
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
         }
 
         console.log('Generated AI response:', aiResponse);
         
-        // Create gather with AI response
+        // Create gather with AI response and pass through parameters
         createGather(twiml, aiResponse, {
-          action: `/api/twilio/voice?retryCount=0`
+          action: `/api/twilio/voice?retryCount=0&taskId=${taskId}&leadId=${leadId}&leadName=${leadName || ''}`
         });
         
         // Save conversation progress
