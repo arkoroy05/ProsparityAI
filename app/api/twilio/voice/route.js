@@ -18,11 +18,16 @@ const gatherOptions = {
   method: 'POST',
   finishOnKey: '#',
   numDigits: 1,
-  timeout: 10,
+  timeout: 15, // Increased timeout for better speech recognition
+  speechModel: 'phone_call', // Optimized for phone calls
+  profanityFilter: false, // Allow natural speech without filtering
   hints: [
     'yes', 'no', 'interested', 'not interested', 'busy', 'later',
     'price', 'cost', 'budget', 'demo', 'schedule', 'meeting',
-    'more information', 'details', 'help', 'support', 'contact'
+    'more information', 'details', 'help', 'support', 'contact',
+    'tell me more', 'how much', 'what is', 'can you', 'I want',
+    'I need', 'I would like', 'sounds good', 'not now', 'maybe later',
+    'email me', 'call back', 'too expensive', 'already have', 'competitor'
   ]
 };
 
@@ -548,14 +553,29 @@ export async function POST(request) {
         // Determine appropriate fallback based on retry count
         let fallbackResponse;
         if (retryCount >= 2) {
-          fallbackResponse = "I'm having some technical difficulties. Let me have one of our team members call you back to continue this conversation.";
+          // Final retry - end the call with a polite message
+          const finalResponses = [
+            "I'm having some technical difficulties. Let me have one of our team members call you back to continue this conversation.",
+            "I apologize for the connection issues. I'll arrange for a representative to follow up with you directly.",
+            "It seems we're experiencing some technical problems. I'll make sure someone from our team reaches out to you soon."
+          ];
+
+          fallbackResponse = finalResponses[Math.floor(Math.random() * finalResponses.length)];
           twiml.say({
             voice: 'Polly.Amy',
             language: 'en-US'
           }, fallbackResponse);
           twiml.hangup();
         } else {
-          fallbackResponse = "I apologize, but I didn't quite catch that. Could you please repeat what you were saying?";
+          // Still have retries left - try again with varied messages
+          const retryResponses = [
+            "I apologize, but I didn't quite catch that. Could you please repeat what you were saying?",
+            "I'm sorry, I'm having trouble understanding. Could you try again?",
+            "I didn't get that clearly. Could you please speak a bit more slowly?",
+            "Sorry about that, could you please rephrase what you just said?"
+          ];
+
+          fallbackResponse = retryResponses[Math.floor(Math.random() * retryResponses.length)];
           createGather(twiml, fallbackResponse, {
             action: `/api/twilio/voice?retryCount=${retryCount + 1}&taskId=${taskId}&leadId=${leadId}&leadName=${leadName || ''}`
           });
@@ -586,8 +606,17 @@ export async function POST(request) {
       });
     }
 
-    // Prompt for input again
-    createGather(twiml, "I didn't catch that. Could you please respond?", {
+    // Prompt for input again with varied responses based on retry count
+    const noInputResponses = [
+      "I didn't catch that. Could you please respond?",
+      "I'm having trouble hearing you. Could you speak a bit louder or clearer?",
+      "I apologize, but I'm not catching what you're saying. Could you try again?"
+    ];
+
+    // Use different response based on retry count
+    const responseIndex = Math.min(retryCount, noInputResponses.length - 1);
+
+    createGather(twiml, noInputResponses[responseIndex], {
       action: `/api/twilio/voice?retryCount=${retryCount + 1}`
     });
 

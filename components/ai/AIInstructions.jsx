@@ -27,7 +27,7 @@ export function AIInstructions({ company }) {
         id: company.id,
         name: company.name || 'Unknown Company'
       });
-      
+
       // We'll check localStorage later only if database fails
       // Don't set usingLocalStorage to true here anymore
     } else {
@@ -50,7 +50,7 @@ export function AIInstructions({ company }) {
       setLoading(false);
       return;
     }
-    
+
     // If we already have instructions from localStorage and not forcing database
     if (usingLocalStorage && !forceDatabase) {
       setLoading(false);
@@ -59,7 +59,7 @@ export function AIInstructions({ company }) {
 
     try {
       console.log('Fetching instructions for company:', company.id);
-      
+
       // First verify the company exists
       const { data: companyData, error: companyError } = await supabase
         .from('companies')
@@ -69,7 +69,7 @@ export function AIInstructions({ company }) {
 
       if (companyError) {
         console.error('Company not found in database:', companyError);
-        
+
         // For development mode, try to load instructions from localStorage
         if (typeof window !== 'undefined') {
           console.log('Checking localStorage for saved instructions');
@@ -83,7 +83,7 @@ export function AIInstructions({ company }) {
             return;
           }
         }
-        
+
         // If no localStorage and in development mode, use empty instructions
         setError('Company not found. Please make sure your company is properly set up.');
         setLoading(false);
@@ -96,7 +96,7 @@ export function AIInstructions({ company }) {
         .select('id, ai_instructions')
         .eq('company_id', company.id)
         .maybeSingle();
-      
+
       if (error) {
         console.error('Error checking company settings:', error);
         // Check if error is related to RLS permissions
@@ -121,9 +121,9 @@ export function AIInstructions({ company }) {
       }
 
       // Otherwise, fallback to localStorage or use API endpoint
-      const savedInstructions = typeof window !== 'undefined' ? 
+      const savedInstructions = typeof window !== 'undefined' ?
         localStorage.getItem(`ai_instructions_${company.id}`) : null;
-      
+
       if (savedInstructions) {
         setInstructions(savedInstructions);
         setUsingLocalStorage(true);
@@ -132,7 +132,7 @@ export function AIInstructions({ company }) {
         // Try using API endpoint
         try {
           console.log('Company exists but no settings found. Creating initial settings...');
-          
+
           // Otherwise, create initial settings via API endpoint
           const initResponse = await fetch('/api/settings/init', {
             method: 'POST',
@@ -146,7 +146,7 @@ export function AIInstructions({ company }) {
             const errorText = await initResponse.text();
             let errorMessage = 'Failed to initialize settings';
             let errorDetails = '';
-            
+
             try {
               const errorData = JSON.parse(errorText);
               errorMessage = errorData.message || errorMessage;
@@ -155,13 +155,13 @@ export function AIInstructions({ company }) {
               // Use the raw text if not JSON
               if (errorText) errorMessage = errorText;
             }
-            
+
             console.error('Init response error:', errorMessage, errorDetails);
-            
+
             // Create a fallback for development
             if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
               console.log('Using local storage fallback in development mode');
-              
+
               // Default instructions for development
               const defaultInstructions = `# Development Mode AI Instructions
 
@@ -171,7 +171,7 @@ This is a local development fallback. The settings could not be initialized in t
 Error details: ${errorMessage}
 
 In a real environment, you would use these instructions to guide your conversation with leads.`;
-              
+
               setInstructions(defaultInstructions);
               localStorage.setItem(`ai_instructions_${company.id}`, defaultInstructions);
               setUsingLocalStorage(true);
@@ -181,7 +181,7 @@ In a real environment, you would use these instructions to guide your conversati
               setError(`Failed to initialize settings: ${errorMessage}`);
               toast.error(`Settings initialization failed: ${errorMessage}`);
             }
-            
+
             setLoading(false);
             return;
           }
@@ -211,7 +211,7 @@ In a real environment, you would use these instructions to guide your conversati
   const saveInstructions = async () => {
     let retryCount = 0;
     const maxRetries = 2;
-    
+
     const attemptSave = async () => {
       try {
         setSaving(true);
@@ -221,7 +221,7 @@ In a real environment, you would use these instructions to guide your conversati
         if (typeof window !== 'undefined') {
           localStorage.setItem(`ai_instructions_${company.id}`, instructions);
         }
-        
+
         // If we're using localStorage mode, don't try to save to the database
         if (usingLocalStorage) {
           toast.success('Instructions saved locally');
@@ -238,7 +238,7 @@ In a real environment, you would use these instructions to guide your conversati
 
         if (companyError) {
           console.error('Company verification failed:', companyError);
-          
+
           // Just use localStorage as fallback
           setUsingLocalStorage(true);
           toast.success('Instructions saved locally (database connection issue)');
@@ -257,14 +257,14 @@ In a real environment, you would use these instructions to guide your conversati
             body: JSON.stringify({ companyId: company.id }),
             cache: 'no-store',
           });
-  
+
           // Log detailed information about the response
           console.log('Init response status:', initResponse.status);
-          
+
           if (!initResponse.ok) {
             const errorText = await initResponse.text();
             console.error('Init response error text:', errorText);
-            
+
             let errorMessage = `Failed to initialize settings: ${initResponse.status}`;
             try {
               const errorData = JSON.parse(errorText);
@@ -274,7 +274,7 @@ In a real environment, you would use these instructions to guide your conversati
               // Use the raw text if not JSON
               if (errorText) errorMessage = errorText;
             }
-            
+
             // Fall back to localStorage
             setUsingLocalStorage(true);
             toast.success('Instructions saved locally');
@@ -304,7 +304,7 @@ In a real environment, you would use these instructions to guide your conversati
         if (!saveResponse.ok) {
           const saveErrorText = await saveResponse.text();
           console.error('Save response error text:', saveErrorText);
-          
+
           let errorMessage = `Failed to save instructions: ${saveResponse.status}`;
           try {
             const saveData = JSON.parse(saveErrorText);
@@ -313,7 +313,7 @@ In a real environment, you would use these instructions to guide your conversati
             // Use the raw text if not JSON
             if (saveErrorText) errorMessage = saveErrorText;
           }
-          
+
           // Fall back to localStorage
           setUsingLocalStorage(true);
           toast.success('Instructions saved locally');
@@ -325,12 +325,12 @@ In a real environment, you would use these instructions to guide your conversati
         try {
           const saveData = await saveResponse.json();
           setInstructions(saveData.instructions || instructions);
-          
+
           // Add success state and message
           setSaveSuccess(true);
           setError(null);
           toast.success('Instructions saved successfully to database');
-          
+
           // Reset success state after 3 seconds
           setTimeout(() => {
             setSaveSuccess(false);
@@ -340,11 +340,11 @@ In a real environment, you would use these instructions to guide your conversati
           console.warn('Could not parse save response, but request succeeded');
           toast.success('Instructions saved successfully');
         }
-        
+
       } catch (error) {
         console.error('Error saving instructions:', error);
         setError(error.message);
-        
+
         // Always fall back to localStorage
         setUsingLocalStorage(true);
         toast.success('Instructions saved locally');
@@ -352,23 +352,23 @@ In a real environment, you would use these instructions to guide your conversati
         setSaving(false);
       }
     };
-    
+
     return attemptSave();
   };
 
   const generateInstructions = async () => {
     try {
       setGenerating(true);
-      
+
       // Check if company has required data
       if (!company?.name) {
         toast.error('Company name is required to generate instructions');
         setGenerating(false);
         return;
       }
-      
+
       // Prepare payload - include current instructions if they exist
-      const payload = { 
+      const payload = {
         company: {
           name: company.name,
           industry: company.industry || 'Technology',
@@ -376,12 +376,12 @@ In a real environment, you would use these instructions to guide your conversati
         },
         currentInstructions: instructions.trim() // Send current instructions for enhancement
       };
-      
+
       console.log('Sending request with payload:', {
         ...payload,
         currentInstructionsLength: payload.currentInstructions.length
       });
-      
+
       // Make the request
       try {
         const response = await fetch('/api/ai/generate-instructions', {
@@ -389,13 +389,13 @@ In a real environment, you would use these instructions to guide your conversati
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        
+
         console.log('Response status:', response.status);
-        
+
         // Get the response text
         const text = await response.text();
         console.log('Response text preview:', text.substring(0, 100));
-        
+
         // Try to parse the JSON
         let data;
         try {
@@ -405,17 +405,17 @@ In a real environment, you would use these instructions to guide your conversati
           console.error('Raw response text:', text);
           throw new Error('Invalid response from server');
         }
-        
+
         // Check for success
         if (!data || !data.success) {
           throw new Error(data?.message || 'Failed to generate instructions');
         }
-        
+
         // Check for instructions
         if (!data.instructions) {
           throw new Error('No instructions received');
         }
-        
+
         // Handle different generation methods
         if (data.generationMethod === 'enhanced') {
           toast.success('Enhanced your instructions with AI');
@@ -424,7 +424,7 @@ In a real environment, you would use these instructions to guide your conversati
         } else if (data.usingFallback) {
           toast.info('Using template instructions (AI service unavailable)');
         }
-        
+
         // Set the instructions
         setGeneratedInstructions(data.instructions);
       } catch (requestError) {
@@ -457,12 +457,20 @@ In a real environment, you would use these instructions to guide your conversati
   // Add function to clear localStorage
   const clearLocalStorage = () => {
     if (typeof window !== 'undefined' && company?.id) {
-      localStorage.removeItem(`ai_instructions_${company.id}`);
-      console.log('Cleared local storage for company', company.id);
-      toast.success('Local storage cleared');
-      
-      // Switch to database mode
-      switchToDatabaseMode();
+      if (confirm('Are you sure you want to clear local data? This will remove your saved instructions from this browser.')) {
+        localStorage.removeItem(`ai_instructions_${company.id}`);
+        console.log('Cleared local storage for company', company.id);
+        toast.success('Local storage cleared');
+
+        // Ask if user wants to switch to database mode
+        if (confirm('Would you like to try switching to database mode?')) {
+          switchToDatabaseMode();
+        } else {
+          // Reload with empty instructions
+          setInstructions('');
+          setError('Local data cleared. You are still in local storage mode.');
+        }
+      }
     }
   };
 
@@ -504,7 +512,7 @@ In a real environment, you would use these instructions to guide your conversati
                 </p>
               )}
             </div>
-            
+
             {process.env.NODE_ENV === 'development' && (
               <div className="space-y-4">
                 <Textarea
@@ -513,8 +521,8 @@ In a real environment, you would use these instructions to guide your conversati
                   placeholder="Enter instructions for your AI sales agent..."
                   className="min-h-[200px]"
                 />
-                <Button 
-                  onClick={saveInstructions} 
+                <Button
+                  onClick={saveInstructions}
                   className="w-full"
                 >
                   Save Instructions Locally
@@ -545,16 +553,16 @@ In a real environment, you would use these instructions to guide your conversati
           {usingLocalStorage && (
             <div className="rounded-md border border-amber-500/50 bg-amber-500/10 p-3 mb-3">
               <p className="text-sm text-amber-500">
-                <strong>Note:</strong> You are currently using local storage mode. 
+                <strong>Note:</strong> You are currently using local storage mode.
                 Changes will be saved to your browser only and not to the database.
-                <Button 
-                  variant="link" 
+                <Button
+                  variant="link"
                   className="text-amber-600 p-0 h-auto font-medium text-sm ml-2"
                   onClick={switchToDatabaseMode}>
                   Try switching to database mode
                 </Button>
-                <Button 
-                  variant="link" 
+                <Button
+                  variant="link"
                   className="text-amber-600 p-0 h-auto font-medium text-sm ml-2"
                   onClick={clearLocalStorage}>
                   Clear local data
@@ -562,10 +570,10 @@ In a real environment, you would use these instructions to guide your conversati
               </p>
             </div>
           )}
-          
+
           <div className="flex justify-end">
-            <Button 
-              onClick={generateInstructions} 
+            <Button
+              onClick={generateInstructions}
               disabled={generating || !company?.name}
               variant="outline"
             >
@@ -585,7 +593,7 @@ In a real environment, you would use these instructions to guide your conversati
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-2">Generated Instructions</h3>
                 <p className="text-sm mb-4 whitespace-pre-wrap">{generatedInstructions}</p>
-                <Button 
+                <Button
                   onClick={useGeneratedInstructions}
                   variant="secondary"
                 >
@@ -619,8 +627,8 @@ In a real environment, you would use these instructions to guide your conversati
               placeholder="Enter instructions for your AI sales agent..."
               className="min-h-[200px]"
             />
-            <Button 
-              onClick={saveInstructions} 
+            <Button
+              onClick={saveInstructions}
               disabled={saving || !company?.id}
               className="w-full"
             >
@@ -649,4 +657,4 @@ In a real environment, you would use these instructions to guide your conversati
       </Card>
     </div>
   );
-} 
+}
