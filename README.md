@@ -38,17 +38,24 @@ npm install
 yarn install
 ```
 
-3. Set up environment variables:
-Create a `.env.local` file with the following variables:
+3. Automated Setup (Recommended):
+```bash
+chmod +x scripts/setup.sh
+./scripts/setup.sh
+```
+This script will guide you through the entire setup process, including:
+- Verifying Node.js compatibility
+- Installing dependencies
+- Setting up API keys
+- Testing the AI agent functionality
+
+4. Manual Environment Setup:
+If you prefer to set up manually, create a `.env.local` file with the following variables:
 ```
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-GOOGLE_AI_API_KEY=your_google_ai_api_key
-```
-
-4. Initialize the database:
-```bash
-npm run db:init
+GEMINI_API_KEY=your_gemini_api_key
+NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
 ```
 
 5. Start the development server:
@@ -57,6 +64,30 @@ npm run dev
 ```
 
 Visit `http://localhost:3000` to access the application.
+
+### Setting Up Gemini AI Integration
+
+The application uses Google's Gemini AI for natural language processing. Follow these steps to set up your Gemini API key:
+
+1. Visit [Google AI Studio](https://ai.google.dev/) and create an account
+2. Generate an API key from the Google AI Studio console
+3. Add your API key to the `.env.local` file as shown above
+4. Test the AI integration by running:
+```bash
+node scripts/test-ai-agent.js
+```
+
+### Troubleshooting AI Integration
+
+If you encounter issues with the AI agent:
+
+1. Verify your Gemini API key is correct
+2. Ensure you have sufficient quota for the Gemini API
+3. Check the console logs for specific error messages
+4. Run the test script to diagnose issues:
+```bash
+node scripts/test-ai-agent.js
+```
 
 ## 🏗 Project Structure
 
