@@ -210,6 +210,46 @@ export async function POST(request) {
       // Only create agent if we have the required parameters
       if (leadId && taskId) {
         console.log('Creating new AI call agent for:', { leadId, taskId });
+
+        // First, check if we have company settings for this lead
+        try {
+          const { data: leadData, error: leadError } = await supabase
+            .from('leads')
+            .select('company_id, name, company_name')
+            .eq('id', leadId)
+            .single();
+
+          if (leadError) {
+            console.error('Error fetching lead data:', leadError);
+          } else {
+            console.log('Found lead data:', {
+              leadName: leadData.name,
+              companyName: leadData.company_name,
+              companyId: leadData.company_id
+            });
+
+            // If we have a company ID, check for company settings
+            if (leadData.company_id) {
+              const { data: companySettings, error: settingsError } = await supabase
+                .from('company_settings')
+                .select('ai_instructions')
+                .eq('company_id', leadData.company_id)
+                .single();
+
+              if (settingsError) {
+                console.error('Error fetching company settings:', settingsError);
+              } else if (companySettings?.ai_instructions) {
+                console.log('Found company-specific AI instructions');
+              } else {
+                console.log('No company-specific AI instructions found, will use default');
+              }
+            }
+          }
+        } catch (dbError) {
+          console.error('Database error when checking company settings:', dbError);
+        }
+
+        // Create the AI agent
         try {
           callAgent = new AICallAgent(leadId, taskId);
           await callAgent.initialize();
@@ -218,6 +258,8 @@ export async function POST(request) {
           }
           activeCallAgents[callSid] = callAgent;
           console.log('AI call agent created and initialized successfully');
+          console.log('Using company name:', callAgent.companyName);
+          console.log('Using custom script:', callAgent.customScript ? 'Yes (custom)' : 'No (default)');
         } catch (error) {
           console.error('Error creating AI call agent:', error);
           // Use fallback instead of throwing
@@ -250,8 +292,8 @@ export async function POST(request) {
               console.error('Error creating AI call agent for greeting:', agentError);
               // Use fallback greeting instead of throwing
               const fallbackGreeting = leadName
-                ? `Hello ${leadName}, I'm calling from Workwise about improving your business processes. Do you have a moment to talk?`
-                : `Hello, I'm calling from Workwise about improving your business processes. Do you have a moment to talk?`;
+                ? `Hello ${leadName}, I'm calling from Prosparity.ai about our AI-powered sales platform that can help improve your lead conversion rates. Do you have a moment to talk?`
+                : `Hello, I'm calling from Prosparity.ai about our AI-powered sales platform that can help improve your lead conversion rates. Do you have a moment to talk?`;
 
               createGather(twiml, fallbackGreeting, {
                 action: `/api/twilio/voice?retryCount=0&taskId=${taskId}&leadId=${leadId}&leadName=${leadName || ''}`
@@ -265,8 +307,8 @@ export async function POST(request) {
             // No lead/task ID, use generic greeting
             console.error('No lead/task ID available for AI agent creation during greeting');
             const genericGreeting = leadName
-              ? `Hello ${leadName}, I'm calling from Workwise about improving your business processes. Do you have a moment to talk?`
-              : `Hello, I'm calling from Workwise about improving your business processes. Do you have a moment to talk?`;
+              ? `Hello ${leadName}, I'm calling from Prosparity.ai about our AI-powered sales platform that can help improve your lead conversion rates. Do you have a moment to talk?`
+              : `Hello, I'm calling from Prosparity.ai about our AI-powered sales platform that can help improve your lead conversion rates. Do you have a moment to talk?`;
 
             createGather(twiml, genericGreeting, {
               action: `/api/twilio/voice?retryCount=0`
@@ -306,8 +348,8 @@ export async function POST(request) {
         if (!greeting) {
           console.warn('All greeting generation attempts failed, using fallback');
           greeting = leadName
-            ? `Hello ${leadName}, I'm calling from Workwise about improving your business processes. Do you have a moment to talk?`
-            : `Hello, I'm calling from Workwise about improving your business processes. Do you have a moment to talk?`;
+            ? `Hello ${leadName}, I'm calling from Prosparity.ai about our AI-powered sales platform that can help improve your lead conversion rates. Do you have a moment to talk?`
+            : `Hello, I'm calling from Prosparity.ai about our AI-powered sales platform that can help improve your lead conversion rates. Do you have a moment to talk?`;
 
           // Add this fallback to the conversation history
           if (callAgent) {
@@ -333,8 +375,8 @@ export async function POST(request) {
         console.error('Critical error in initial greeting:', error);
         // Use generic greeting as absolute fallback
         const fallbackGreeting = leadName
-          ? `Hello ${leadName}, I'm calling from Workwise about improving your business processes. Do you have a moment to talk?`
-          : `Hello, I'm calling from Workwise about improving your business processes. Do you have a moment to talk?`;
+          ? `Hello ${leadName}, I'm calling from Prosparity.ai about our AI-powered sales platform that can help improve your lead conversion rates. Do you have a moment to talk?`
+          : `Hello, I'm calling from Prosparity.ai about our AI-powered sales platform that can help improve your lead conversion rates. Do you have a moment to talk?`;
 
         createGather(twiml, fallbackGreeting, {
           action: `/api/twilio/voice?retryCount=0&taskId=${taskId}&leadId=${leadId}&leadName=${leadName || ''}`
