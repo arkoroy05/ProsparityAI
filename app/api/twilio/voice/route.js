@@ -216,6 +216,10 @@ export async function POST(request) {
       if (leadId && taskId) {
         console.log('Creating new AI call agent for:', { leadId, taskId });
 
+        // Initialize variable to store custom instructions
+        let customInstructions = null;
+        let companyName = "Prosparity.ai"; // Default company name
+
         // First, check if we have company settings for this lead
         try {
           const { data: leadData, error: leadError } = await supabase
@@ -233,6 +237,11 @@ export async function POST(request) {
               companyId: leadData.company_id
             });
 
+            // Store company name if available
+            if (leadData.company_name) {
+              companyName = leadData.company_name;
+            }
+
             // If we have a company ID, check for company settings
             if (leadData.company_id) {
               const { data: companySettings, error: settingsError } = await supabase
@@ -245,6 +254,8 @@ export async function POST(request) {
                 console.error('Error fetching company settings:', settingsError);
               } else if (companySettings?.ai_instructions) {
                 console.log('Found company-specific AI instructions');
+                // Store the custom instructions to use when creating the AI agent
+                customInstructions = companySettings.ai_instructions;
               } else {
                 console.log('No company-specific AI instructions found, will use default');
               }
@@ -256,7 +267,20 @@ export async function POST(request) {
 
         // Create the AI agent
         try {
+          // Create the agent with custom instructions and company name if available
           callAgent = new AICallAgent(leadId, taskId);
+
+          // Set custom instructions and company name before initialization
+          if (customInstructions) {
+            console.log('Setting custom instructions for AI agent');
+            callAgent.customScript = customInstructions;
+          }
+
+          if (companyName) {
+            console.log('Setting company name for AI agent:', companyName);
+            callAgent.companyName = companyName;
+          }
+
           await callAgent.initialize();
           if (!callAgent.isInitialized) {
             throw new Error('AI agent failed to initialize properly');
@@ -289,7 +313,54 @@ export async function POST(request) {
           if (leadId && taskId) {
             console.log('Creating new AI call agent for initial greeting:', { leadId, taskId });
             try {
+              // Initialize variable to store custom instructions
+              let customInstructions = null;
+              let companyName = "Prosparity.ai"; // Default company name
+
+              // Try to get company settings for custom instructions
+              try {
+                const { data: leadData, error: leadError } = await supabase
+                  .from('leads')
+                  .select('company_id, name, company_name')
+                  .eq('id', leadId)
+                  .single();
+
+                if (!leadError && leadData) {
+                  if (leadData.company_name) {
+                    companyName = leadData.company_name;
+                  }
+
+                  if (leadData.company_id) {
+                    const { data: companySettings, error: settingsError } = await supabase
+                      .from('company_settings')
+                      .select('ai_instructions')
+                      .eq('company_id', leadData.company_id)
+                      .single();
+
+                    if (!settingsError && companySettings?.ai_instructions) {
+                      customInstructions = companySettings.ai_instructions;
+                    }
+                  }
+                }
+              } catch (settingsError) {
+                console.error('Error fetching settings for greeting:', settingsError);
+                // Continue with default settings
+              }
+
+              // Create the agent with custom instructions if available
               callAgent = new AICallAgent(leadId, taskId);
+
+              // Set custom instructions and company name before initialization
+              if (customInstructions) {
+                console.log('Setting custom instructions for greeting AI agent');
+                callAgent.customScript = customInstructions;
+              }
+
+              if (companyName) {
+                console.log('Setting company name for greeting AI agent:', companyName);
+                callAgent.companyName = companyName;
+              }
+
               await callAgent.initialize();
               activeCallAgents[callSid] = callAgent;
               console.log('AI call agent created and initialized successfully for greeting');
@@ -452,7 +523,54 @@ export async function POST(request) {
           if (leadId && taskId) {
             console.log('Creating new AI call agent for user input processing:', { leadId, taskId });
             try {
+              // Initialize variable to store custom instructions
+              let customInstructions = null;
+              let companyName = "Prosparity.ai"; // Default company name
+
+              // Try to get company settings for custom instructions
+              try {
+                const { data: leadData, error: leadError } = await supabase
+                  .from('leads')
+                  .select('company_id, name, company_name')
+                  .eq('id', leadId)
+                  .single();
+
+                if (!leadError && leadData) {
+                  if (leadData.company_name) {
+                    companyName = leadData.company_name;
+                  }
+
+                  if (leadData.company_id) {
+                    const { data: companySettings, error: settingsError } = await supabase
+                      .from('company_settings')
+                      .select('ai_instructions')
+                      .eq('company_id', leadData.company_id)
+                      .single();
+
+                    if (!settingsError && companySettings?.ai_instructions) {
+                      customInstructions = companySettings.ai_instructions;
+                    }
+                  }
+                }
+              } catch (settingsError) {
+                console.error('Error fetching settings for input processing:', settingsError);
+                // Continue with default settings
+              }
+
+              // Create the agent with custom instructions if available
               callAgent = new AICallAgent(leadId, taskId);
+
+              // Set custom instructions and company name before initialization
+              if (customInstructions) {
+                console.log('Setting custom instructions for input processing AI agent');
+                callAgent.customScript = customInstructions;
+              }
+
+              if (companyName) {
+                console.log('Setting company name for input processing AI agent:', companyName);
+                callAgent.companyName = companyName;
+              }
+
               await callAgent.initialize();
               activeCallAgents[callSid] = callAgent;
               console.log('AI call agent created and initialized successfully for input processing');
@@ -642,7 +760,7 @@ export async function POST(request) {
 }
 
 // Health check endpoint
-export async function GET(request) {
+export async function GET() {
   try {
     const twiml = new VoiceResponse();
     twiml.say({

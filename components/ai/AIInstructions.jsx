@@ -446,11 +446,75 @@ In a real environment, you would use these instructions to guide your conversati
   };
 
   // Add function to switch from local to database mode
-  const switchToDatabaseMode = () => {
+  const switchToDatabaseMode = async () => {
     if (usingLocalStorage) {
-      setUsingLocalStorage(false);
-      console.log('Switching from local storage to database mode');
-      fetchInstructions(true); // Force refetch from database
+      try {
+        setLoading(true);
+        setUsingLocalStorage(false);
+        console.log('Switching from local storage to database mode');
+
+        // First, try to initialize the company settings
+        console.log('Initializing settings for company:', company.id);
+        const initResponse = await fetch('/api/settings/init', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ companyId: company.id }),
+          cache: 'no-store',
+        });
+
+        if (!initResponse.ok) {
+          const errorText = await initResponse.text();
+          console.error('Init response error text:', errorText);
+          throw new Error(`Failed to initialize settings: ${initResponse.status}`);
+        }
+
+        const initData = await initResponse.json();
+        console.log('Settings initialization response:', initData);
+
+        if (!initData.success) {
+          throw new Error(initData.message || 'Failed to initialize settings');
+        }
+
+        // Now try to save the current instructions to the database
+        const saveResponse = await fetch('/api/settings/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            companyId: company.id,
+            instructions: instructions,
+          }),
+        });
+
+        if (!saveResponse.ok) {
+          const saveErrorText = await saveResponse.text();
+          console.error('Save response error text:', saveErrorText);
+          throw new Error(`Failed to save instructions: ${saveResponse.status}`);
+        }
+
+        const saveData = await saveResponse.json();
+        console.log('Save response:', saveData);
+
+        if (!saveData.success) {
+          throw new Error(saveData.message || 'Failed to save instructions');
+        }
+
+        // Successfully switched to database mode
+        toast.success('Successfully switched to database mode');
+        setError(null);
+
+        // Fetch the instructions from the database to confirm
+        await fetchInstructions(true);
+      } catch (error) {
+        console.error('Error switching to database mode:', error);
+        setUsingLocalStorage(true); // Switch back to local storage mode
+        setError(`Failed to switch to database mode: ${error.message}`);
+        toast.error(`Failed to switch to database mode: ${error.message}`);
+        setLoading(false);
+      }
     }
   };
 
